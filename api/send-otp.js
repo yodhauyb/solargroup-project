@@ -8,12 +8,12 @@ export default async function handler(req, res) {
   const { email, otp } = req.body;
 
   const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: 'delivery.solargroup.pro@gmail.com',
-      pass: process.env.GMAIL_APP_PASSWORD
-    }
-  });
+  service: 'gmail',
+  auth: {
+    user: 'delivery.solargroup.pro@gmail.com',
+    pass: process.env.GMAIL_APP_PASSWORD
+  }
+});
 
   try {
     await transporter.sendMail({
