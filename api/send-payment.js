@@ -8,14 +8,12 @@ export default async function handler(req, res) {
   const { transaction_id, user_email, lots, amount, screenshot_base64 } = req.body;
 
   const transporter = nodemailer.createTransport({
-    host: 'smtp-relay.brevo.com',
-    port: 587,
-    auth: {
-     user: 'delivery.solargroup.pro@gmail.com',
+  service: 'gmail',
+  auth: {
+    user: 'delivery.solargroup.pro@gmail.com',
     pass: process.env.GMAIL_APP_PASSWORD
-    }
-  });
-
+  }
+});
   try {
     await transporter.sendMail({
       from: '"SOLARGROUP Payments" <info@solargroup.pro>',
