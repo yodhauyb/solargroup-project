@@ -16,8 +16,8 @@ export default async function handler(req, res) {
 });
   try {
     await transporter.sendMail({
-      from: '"SOLARGROUP Payments" <info@solargroup.pro>',
-      to: 'krishnapathak20305@gmail.com', // Aapka admin email
+      from: '"SOLARGROUP Payments" <delivery.solargroup.pro@gmail.com>',
+      to: 'krishnapathak20305@gmail.com,skyworldcommunityinfo@gmail.com', // Aapka admin email
       subject: `New Payment Alert - ID: ${transaction_id}`,
       html: `
         <h2>New Lot Purchase Request</h2>
