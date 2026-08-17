@@ -17,7 +17,7 @@ export default async function handler(req, res) {
 
   try {
     await transporter.sendMail({
-      from: '"SOLARGROUP" <delivery.solargroup.pro@gmail.com>',
+      from: '"SOLARGROUP" <info@solargroup.pro>',
       to: email,
       subject: 'Your Verification OTP',
       text: `Your OTP code is: ${otp}`,
