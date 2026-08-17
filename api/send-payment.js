@@ -12,7 +12,7 @@ export default async function handler(req, res) {
     port: 587,
     auth: {
       user: 'b5ceff7001@smtp-brevo.com',
-      pass: 'xsmtpsib-f1d52f1ffefa299f1e7a9b0f6b7b0c03fa9eed81eddc17e370b00be90a42ee39-TxEGn84NMxqcJMcP'
+      pass: 'process.env.BREVO_SMTP_KEY'
     }
   });
 
