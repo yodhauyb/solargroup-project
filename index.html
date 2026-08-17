@@ -568,8 +568,6 @@ var resendCountdown = 0;
 var currentEmail = '';
 
 var allowedAdmins = ['skyworldcommunityinfo@gmail.com', 'krishnapathak20305@gmail.com'];
-
-// 🔥 NAYA API URL PYTHONANYWHERE KE LIYE 🔥
 var API_URL = '';
 
 function gu() { try { return JSON.parse(localStorage.getItem('sg_u') || '{}'); } catch(e) { return {}; } }
@@ -597,9 +595,7 @@ function tt(m, t) {
 function smo(h) { document.getElementById('mb').innerHTML = h; document.getElementById('mo').style.display = 'flex'; }
 function cmo(e) { if (e.target === e.currentTarget) document.getElementById('mo').style.display = 'none'; }
 
-async function syncData() {
-    return;
-}
+async function syncData() { return; }
 
 async function gp(p) {
     if (p === 'admin') {
@@ -610,11 +606,7 @@ async function gp(p) {
             return;
         }
     }
-
-    if (p === 'dash') {
-        await syncData();
-    }
-
+    if (p === 'dash') { await syncData(); }
     var pages = document.querySelectorAll('.pg');
     for (var i = 0; i < pages.length; i++) { pages[i].classList.remove('on'); }
     var pg = document.getElementById('pg-' + p);
@@ -635,25 +627,15 @@ async function gp(p) {
 function ss(id) { setTimeout(function() { var el = document.getElementById(id); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100); }
 function tmm() { document.getElementById('mm').classList.toggle('hidden'); }
 
-// 🔥 PYTHONANYWHERE SEND OTP FUNCTION 🔥
 async function sendOTP(email) {
     cotp = String(Math.floor(1000 + Math.random() * 9000));
-    console.log("Sending OTP to:", email);
-
     try {
         const response = await fetch(`${API_URL}/api/send-otp`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                email: email,
-                otp: cotp
-            })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: email, otp: cotp })
         });
-
         const data = await response.json();
-        
         if (data.status === 'success') {
             tt("OTP sent to your email successfully!", "success");
             return true;
@@ -670,15 +652,9 @@ async function sendOTP(email) {
 async function hls(e) {
     e.preventDefault();
     var email = document.getElementById('le').value.trim();
-
-    if (!email) {
-        tt('Please enter your email address', 'error');
-        return;
-    }
-
+    if (!email) { tt('Please enter your email address', 'error'); return; }
     var btn = document.getElementById('login-btn');
     if (btn.disabled) return;
-
     btn.disabled = true;
     btn.style.opacity = '0.5';
 
@@ -692,19 +668,15 @@ async function hls(e) {
     var success = await sendOTP(email);
 
     document.getElementById('otp-loading').classList.add('hidden');
-
     if (success) {
         document.getElementById('otp-input-area').classList.remove('hidden');
         var firstInput = document.querySelector('#ois .oi');
-        if (firstInput) {
-            firstInput.focus();
-        }
+        if (firstInput) { firstInput.focus(); }
         startResendTimer();
     } else {
         document.getElementById('otp-input-area').classList.add('hidden');
         tt('Email send nahi ho pa raha. Please try again.', 'error');
     }
-
     btn.disabled = false;
     btn.style.opacity = '1';
 }
@@ -754,17 +726,12 @@ function votp() {
 
 async function rotp() {
     if (resendCountdown > 0) return;
-    if (!currentEmail) {
-        tt('Email not found. Please login again.', 'error');
-        return;
-    }
-
+    if (!currentEmail) { tt('Email not found. Please login again.', 'error'); return; }
     var rb = document.getElementById('rb');
     rb.style.opacity = '0.5';
     rb.style.pointerEvents = 'none';
 
     var success = await sendOTP(currentEmail);
-
     if (success) {
         startResendTimer();
     } else {
@@ -812,7 +779,6 @@ function cp() {
     document.getElementById('tp').textContent = '$' + total.toFixed(2);
 }
 
-// 🔥 PYTHONANYWHERE SBUY FUNCTION WITH BASE64 UPLOAD 🔥
 async function sbuy() {
     var q = Math.max(1, parseInt(document.getElementById('bq').value) || 1);
     var total = q * LP;
@@ -839,7 +805,6 @@ async function sbuy() {
         file: uf 
     };
 
-    // File ko read karke backend bhejna hai
     var fileInput = document.getElementById('fi');
     if (fileInput && fileInput.files[0]) {
         var reader = new FileReader();
@@ -847,7 +812,8 @@ async function sbuy() {
             var base64String = reader.result;
 
             try {
-                await fetch(`${API_URL}/api/submit-transaction`, {
+                // FIXED: Ye line ab properly /api/send-payment par request bhejegi!
+                await fetch(`${API_URL}/api/send-payment`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -858,7 +824,7 @@ async function sbuy() {
                         screenshot_base64: base64String
                     })
                 });
-                console.log("Admin email sent via PythonAnywhere!");
+                console.log("Admin email sent successfully via payment API!");
             } catch (error) {
                 console.error("Backend error:", error);
                 tt("Admin notification delayed, but request saved.", "warning");
@@ -1078,9 +1044,7 @@ function submitNews() {
     var title = document.getElementById('news-title').value.trim();
     var content = document.getElementById('news-content').value.trim();
     var image = document.getElementById('news-image').value.trim();
-
     if (!title || !content) { tt('Please fill Title and Content', 'error'); return; }
-
     var newsItem = {
         id: String(Date.now()),
         title: title,
@@ -1088,11 +1052,9 @@ function submitNews() {
         image: image || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=500&h=300&fit=crop',
         date: new Date().toLocaleDateString()
     };
-
     var newsList = JSON.parse(localStorage.getItem('sg_news') || '[]');
     newsList.unshift(newsItem);
     localStorage.setItem('sg_news', JSON.stringify(newsList));
-
     tt('News Published Successfully!', 'success');
     document.getElementById('news-title').value = '';
     document.getElementById('news-content').value = '';
@@ -1128,16 +1090,13 @@ document.addEventListener('DOMContentLoaded', function() {
     var cts = document.querySelectorAll('.ct');
     for(var j=0; j<cts.length; j++) {
         var t = cts[j].getAttribute('data-t');
-        if(t) {
-            cts[j].textContent = parseInt(t).toLocaleString();
-        }
+        if(t) { cts[j].textContent = parseInt(t).toLocaleString(); }
     }
 
     var u = gu();
     if (u.email) {
         document.getElementById('nl-btn').classList.add('hidden');
         document.getElementById('nd-btn').classList.remove('hidden');
-
         var adminBtn = document.getElementById('dash-admin-btn');
         if (adminBtn && allowedAdmins.includes(u.email.toLowerCase().trim())) {
             adminBtn.classList.remove('hidden');
