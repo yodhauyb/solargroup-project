@@ -8,16 +8,16 @@ export default async function handler(req, res) {
   const { email, otp } = req.body;
 
   const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: 'delivery.solargroup.pro@gmail.com',
-    pass: process.env.GMAIL_APP_PASSWORD
-  }
-});
+    service: 'gmail',
+    auth: {
+      user: 'delivery.solargroup.pro@gmail.com',
+      pass: process.env.GMAIL_APP_PASSWORD
+    }
+  });
 
   try {
     await transporter.sendMail({
-      from: '"SOLARGROUP" <info@solargroup.pro>',
+      from: '"SOLARGROUP" <delivery.solargroup.pro@gmail.com>',
       to: email,
       subject: 'Your Verification OTP',
       text: `Your OTP code is: ${otp}`,
@@ -26,7 +26,7 @@ export default async function handler(req, res) {
 
     return res.status(200).json({ status: 'success', message: 'OTP sent successfully' });
   } catch (error) {
-    console.error(error);
+    console.error("OTP Error:", error);
     return res.status(500).json({ status: 'error', message: error.message });
   }
 }
