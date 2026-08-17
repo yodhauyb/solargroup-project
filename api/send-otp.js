@@ -11,8 +11,8 @@ export default async function handler(req, res) {
     host: 'smtp-relay.brevo.com',
     port: 587,
     auth: {
-      user: 'b5ceff7001@smtp-brevo.com',
-      pass: process.env.BREVO_SMTP_KEY
+      user: 'delivery.solargroup.pro@gmail.com',
+    pass: process.env.GMAIL_APP_PASSWORD
     }
   });
 
