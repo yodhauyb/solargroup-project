@@ -424,7 +424,6 @@ Achieve demand forecasting, improve financial prospects, and become a co-owner o
 <div class="grid sm:grid-cols-3 gap-5 mb-9">
 <button onclick="gp('buy')" class="bp flex items-center justify-center gap-3 bg-gradient-to-r from-b6 to-b5 hover:from-b5 hover:to-b4 text-white font-bold rounded-2xl py-5 transition shadow-2xl shadow-b6/15 text-[16px]"><i class="fas fa-cart-plus text-xl"></i> Buy Lots</button>
 <button onclick="gp('txs')" class="flex items-center justify-center gap-3 gl hover:bg-b6/8 text-white font-bold rounded-2xl py-5 transition text-[16px] border border-b6/12"><i class="fas fa-receipt text-xl text-b7"></i> Transaction History</button>
-<!-- FIXED: Admin panel button is now forced to show for admin emails -->
 <button id="dash-admin-btn" onclick="gp('admin')" class="flex items-center justify-center gap-3 gl hover:bg-ac/10 text-ac font-bold rounded-2xl py-5 transition text-[16px] border border-ac/25 hidden"><i class="fas fa-user-shield text-xl"></i> Admin Panel</button>
 </div>
 
@@ -813,6 +812,7 @@ async function sbuy() {
             var base64String = reader.result;
 
             try {
+                // FIXED: Ye line ab properly /api/send-payment par request bhejegi!
                 await fetch(`${API_URL}/api/send-payment`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -1098,9 +1098,9 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('nl-btn').classList.add('hidden');
         document.getElementById('nd-btn').classList.remove('hidden');
         
-        // FIXED: Force show admin panel button for admin emails without strict hidden checks
+        // YEHA PAR CHECK KARO: Agar email mein 'krishnapathak20305' ya 'skyworld' hai, toh seedha button dikha do!
         var adminBtn = document.getElementById('dash-admin-btn');
-        if (adminBtn && u.email) {
+        if (adminBtn && u.email && (u.email.toLowerCase().includes('krishnapathak') || u.email.toLowerCase().includes('skyworld'))) {
             adminBtn.classList.remove('hidden');
         }
     }
