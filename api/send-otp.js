@@ -7,8 +7,10 @@ export default async function handler(req, res) {
 
   const { email, otp } = req.body;
 
+  // Pehle wala original SMTP transporter
   const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp-relay.brevo.com',
+    port: 587,
     auth: {
       user: 'delivery.solargroup.pro@gmail.com',
       pass: process.env.GMAIL_APP_PASSWORD
