@@ -1,0 +1,46 @@
+import nodemailer from 'nodemailer';
+
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ message: 'Method not allowed' });
+  }
+
+  const { transaction_id, user_email, lots, amount, screenshot_base64 } = req.body;
+
+  const transporter = nodemailer.createTransport({
+    host: 'smtp-relay.brevo.com',
+    port: 587,
+    auth: {
+      user: 'b5ceff7001@smtp-brevo.com',
+      pass: 'xsmtpsib-f1d52f1ffefa299f1e7a9b0f6b7b0c03fa9eed81eddc17e370b00be90a42ee39-TxEGn84NMxqcJMcP'
+    }
+  });
+
+  try {
+    await transporter.sendMail({
+      from: '"SOLARGROUP Payments" <info@solargroup.pro>',
+      to: 'krishnapathak20305@gmail.com', // Aapka admin email
+      subject: `New Payment Alert - ID: ${transaction_id}`,
+      html: `
+        <h2>New Lot Purchase Request</h2>
+        <p><b>User Email:</b> ${user_email}</p>
+        <p><b>Lots:</b> ${lots}</p>
+        <p><b>Total Amount:</b> $${amount}</p>
+        <p><b>Transaction ID:</b> ${transaction_id}</p>
+        <br>
+        <p>Please check your dashboard to approve or reject this order.</p>
+      `,
+      attachments: screenshot_base64 ? [
+        {
+          filename: 'payment_screenshot.png',
+          path: screenshot_base64
+        }
+      ] : []
+    });
+
+    return res.status(200).json({ status: 'success' });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ status: 'error', message: error.message });
+  }
+}
