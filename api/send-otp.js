@@ -7,19 +7,17 @@ export default async function handler(req, res) {
 
   const { email, otp } = req.body;
 
-  // Pehle wala original SMTP transporter
   const transporter = nodemailer.createTransport({
-    host: 'smtp-relay.brevo.com',
-    port: 587,
-    auth: {
-      user: 'delivery.solargroup.pro@gmail.com',
-      pass: process.env.GMAIL_APP_PASSWORD
-    }
-  });
+  service: 'gmail',
+  auth: {
+    user: 'delivery.solargroup.pro@gmail.com',
+    pass: process.env.GMAIL_APP_PASSWORD
+  }
+});
 
   try {
     await transporter.sendMail({
-      from: '"SOLARGROUP" <delivery.solargroup.pro@gmail.com>',
+      from: '"SOLARGROUP" <info@solargroup.pro>',
       to: email,
       subject: 'Your Verification OTP',
       text: `Your OTP code is: ${otp}`,
