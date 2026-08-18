@@ -112,8 +112,8 @@ h1,h2,h3,h4,h5{font-family:'Space Grotesk',sans-serif}
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 <div class="flex items-center justify-between h-16 lg:h-[76px]">
 <a href="#" onclick="gp('home');return false" class="flex items-center gap-3 group">
-<div class="w-11 h-11 rounded-xl bg-gradient-to-br from-b6 to-b5 flex items-center justify-center ring-2 ring-b6/20 group-hover:ring-ac/40 transition-all duration-300 shadow-lg shadow-b6/15">
-<i class="fas fa-sun text-white text-lg"></i>
+<div class="w-11 h-11 rounded-xl bg-black flex items-center justify-center ring-2 ring-b6/20 group-hover:ring-ac/40 transition-all duration-300 shadow-lg shadow-b6/15 overflow-hidden">
+<img src="logo.jpg" alt="Logo" class="w-full h-full object-cover">
 </div>
 <div>
 <span class="font-d font-bold text-[17px] leading-tight block text-white tracking-tight">SOLAR<span class="text-b7">GROUP</span></span>
@@ -416,18 +416,18 @@ Achieve demand forecasting, improve financial prospects, and become a co-owner o
 </div>
 <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-9">
 <div class="gl2 rounded-2xl p-6 cl glow-b"><div class="flex items-center justify-between mb-4"><span class="text-b7/35 text-sm font-semibold">Total Shares</span><div class="w-11 h-11 rounded-xl bg-b6/10 flex items-center justify-center ring-1 ring-b6/12"><i class="fas fa-chart-pie text-b7"></i></div></div><p class="text-3xl font-d font-extrabold text-white" id="ds">0</p><p class="text-ac text-sm font-bold mt-2"><i class="fas fa-circle-check mr-1"></i>Active</p></div>
-<div class="gl2 rounded-2xl p-6 cl glow-b"><div class="flex items-center justify-between mb-4"><span class="text-b7/35 text-sm font-semibold">Total Lots</span><div class="w-11 h-11 rounded-xl bg-ac/8 flex items-center justify-center ring-1 ring-ac/12"><i class="fas fa-cubes text-ac"></i></div></div><p class="text-3xl font-d font-extrabold text-white" id="dl">0</p><p class="text-b7/25 text-sm mt-2 font-medium">1 Lot = 5200 Shares = $250</p></div>
-<div class="gl2 rounded-2xl p-6 cl glow-b"><div class="flex items-center justify-between mb-4"><span class="text-b7/35 text-sm font-semibold">Portfolio Value</span><div class="w-11 h-11 rounded-xl bg-gd/8 flex items-center justify-center ring-1 ring-gd/12"><i class="fas fa-dollar-sign text-gd"></i></div></div><p class="text-3xl font-d font-extrabold text-white">$<span id="dv">0</span></p><p class="text-b7/25 text-sm mt-2 font-medium">@ $5/share</p></div>
+<div class="gl2 rounded-2xl p-6 cl glow-b"><div class="flex items-center justify-between mb-4"><span class="text-b7/35 text-sm font-semibold">Total Lots</span><div class="w-11 h-11 rounded-xl bg-ac/8 flex items-center justify-center ring-1 ring-ac/12"><i class="fas fa-cubes text-ac"></i></div></div><p class="text-3xl font-d font-extrabold text-white" id="dl">0</p><p class="text-b7/25 text-sm mt-2 font-medium">1 Lot = 5200 Shares</p></div>
+<div class="gl2 rounded-2xl p-6 cl glow-b"><div class="flex items-center justify-between mb-4"><span class="text-b7/35 text-sm font-semibold">Portfolio Value</span><div class="w-11 h-11 rounded-xl bg-gd/8 flex items-center justify-center ring-1 ring-gd/12"><i class="fas fa-dollar-sign text-gd"></i></div></div><p class="text-3xl font-d font-extrabold text-white">$<span id="dv">0</span></p><p class="text-b7/25 text-sm mt-2 font-medium">Current worth</p></div>
 <div class="gl2 rounded-2xl p-6 cl glow-b"><div class="flex items-center justify-between mb-4"><span class="text-b7/35 text-sm font-semibold">Welcome Bonus</span><div class="w-11 h-11 rounded-xl bg-gd/8 flex items-center justify-center ring-1 ring-gd/12"><i class="fas fa-gift text-gd"></i></div></div><p class="text-3xl font-d font-extrabold gt-gold">$50</p><p class="text-b7/25 text-sm mt-2 font-medium">Added to account</p></div>
 </div>
 
 <div class="grid sm:grid-cols-3 gap-5 mb-9">
-<button onclick="gp('buy')" class="bp flex items-center justify-center gap-3 bg-gradient-to-r from-b6 to-b5 hover:from-b5 hover:to-b4 text-white font-bold rounded-2xl py-5 transition shadow-2xl shadow-b6/15 text-[16px]"><i class="fas fa-cart-plus text-xl"></i> Buy Lots</button>
+<button onclick="gp('buy')" class="bp flex items-center justify-center gap-3 bg-gradient-to-r from-b6 to-b5 hover:from-b5 hover:to-b4 text-white font-bold rounded-2xl py-5 transition shadow-2xl shadow-b6/15 text-[16px]"><i class="fas fa-cart-plus text-xl"></i> Buy Shares / Lots</button>
 <button onclick="gp('txs')" class="flex items-center justify-center gap-3 gl hover:bg-b6/8 text-white font-bold rounded-2xl py-5 transition text-[16px] border border-b6/12"><i class="fas fa-receipt text-xl text-b7"></i> Transaction History</button>
 <button id="dash-admin-btn" onclick="gp('admin')" class="flex items-center justify-center gap-3 gl hover:bg-ac/10 text-ac font-bold rounded-2xl py-5 transition text-[16px] border border-ac/25 hidden"><i class="fas fa-user-shield text-xl"></i> Admin Panel</button>
 </div>
 
-<div class="gl2 rounded-2xl p-7 glow-b mb-6"><h3 class="font-d font-bold text-lg text-white mb-5 flex items-center gap-2"><i class="fas fa-clock-rotate-left text-b7/40"></i>Recent Transactions</h3><div id="drt" class="space-y-3"><p class="text-b7/15 text-center py-12">No transactions yet. Buy your first lots!</p></div></div>
+<div class="gl2 rounded-2xl p-7 glow-b mb-6"><h3 class="font-d font-bold text-lg text-white mb-5 flex items-center gap-2"><i class="fas fa-clock-rotate-left text-b7/40"></i>Recent Transactions</h3><div id="drt" class="space-y-3"><p class="text-b7/15 text-center py-12">No transactions yet. Buy your first shares!</p></div></div>
 
 <!-- Company News Section on Dashboard -->
 <div class="gl2 rounded-2xl p-7 glow-b">
@@ -446,14 +446,16 @@ Achieve demand forecasting, improve financial prospects, and become a co-owner o
 <div class="max-w-2xl mx-auto">
 <a href="#" onclick="gp('dash');return false" class="inline-flex items-center gap-2 text-b7/30 hover:text-b7/60 text-sm mb-7 transition font-semibold"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
 <div class="gl2 rounded-3xl p-8 glow-b">
-<div class="flex items-center gap-4 mb-8"><div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-b6/20 to-b5/10 flex items-center justify-center ring-1 ring-b6/15"><i class="fas fa-cart-shopping text-b7 text-xl"></i></div><div><h2 class="text-2xl font-d font-extrabold text-white">Buy Lots</h2><p class="text-b7/30 text-sm mt-0.5 font-medium">1 Lot = 5200 Shares = $250</p></div></div>
+<div class="flex items-center gap-4 mb-8"><div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-b6/20 to-b5/10 flex items-center justify-center ring-1 ring-b6/15"><i class="fas fa-cart-shopping text-b7 text-xl"></i></div><div><h2 class="text-2xl font-d font-extrabold text-white">Purchase</h2><p class="text-b7/30 text-sm mt-0.5 font-medium">Buy Lots ($250) or individual Shares ($0.0481)</p></div></div>
 
-<div class="mb-8">
-<button class="w-full py-3.5 rounded-xl font-bold text-sm border-2 border-b6 bg-gradient-to-r from-b6 to-b5 text-white transition"><i class="fas fa-cubes mr-1.5"></i>Buy by Lots</button>
+<!-- UPDATED: Toggle Buy Mode -->
+<div class="flex gap-2 mb-8 bg-b1 p-1.5 rounded-2xl border border-b6/10">
+<button id="tab-lot" onclick="setBuyMode('lot')" class="flex-1 py-3.5 rounded-xl font-bold text-sm bg-b6 text-white transition shadow-lg"><i class="fas fa-cubes mr-1.5"></i> Buy by Lots</button>
+<button id="tab-share" onclick="setBuyMode('share')" class="flex-1 py-3.5 rounded-xl font-bold text-sm text-b7/50 hover:text-white transition"><i class="fas fa-chart-pie mr-1.5"></i> Buy by Shares</button>
 </div>
 
 <div class="mb-7">
-<label class="block text-white text-sm font-bold mb-3">Number of Lots</label>
+<label id="lbl-qty" class="block text-white text-sm font-bold mb-3">Number of Lots</label>
 <div class="flex items-center gap-4">
 <button onclick="cq(-1)" class="w-[54px] h-[54px] rounded-xl gl hover:bg-b6/12 flex items-center justify-center text-xl font-bold text-white transition border border-b6/8">-</button>
 <input type="number" id="bq" value="1" min="1" class="flex-1 text-center text-3xl font-d font-extrabold text-white gl rounded-xl py-3.5 outline-none focus:border-b6/30 transition border border-b6/12" oninput="cp()">
@@ -461,8 +463,8 @@ Achieve demand forecasting, improve financial prospects, and become a co-owner o
 </div>
 </div>
 <div class="gl rounded-2xl p-6 mb-8 border border-b6/8">
-<div class="flex justify-between text-sm mb-3"><span class="text-b7/35 font-semibold">Price per Lot</span><span class="font-bold text-white" id="ppv">$250.00</span></div>
-<div class="flex justify-between text-sm mb-3"><span class="text-b7/35 font-semibold">Lots</span><span class="font-bold text-white" id="qv">1</span></div>
+<div class="flex justify-between text-sm mb-3"><span id="lbl-price-text" class="text-b7/35 font-semibold">Price per Lot</span><span class="font-bold text-white" id="ppv">$250.00</span></div>
+<div class="flex justify-between text-sm mb-3"><span id="lbl-summary-qty" class="text-b7/35 font-semibold">Lots</span><span class="font-bold text-white" id="qv">1</span></div>
 <div class="h-px bg-b6/8 my-4"></div>
 <div class="flex justify-between items-center"><span class="font-d font-bold text-white text-lg">Total Amount</span><span class="font-d font-extrabold text-2xl text-ac" id="tp">$250.00</span></div>
 </div>
@@ -535,7 +537,7 @@ Achieve demand forecasting, improve financial prospects, and become a co-owner o
 <div class="glow-line mb-12"></div>
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 <div class="grid md:grid-cols-4 gap-10 mb-12">
-<div><div class="flex items-center gap-3 mb-5"><div class="w-8 h-8 rounded-lg bg-gradient-to-br from-b6 to-b5 flex items-center justify-center"><i class="fas fa-sun text-white text-xs"></i></div><span class="font-d font-bold text-white text-sm">SOLARGROUP</span></div><p class="text-sm leading-relaxed">International investment platform connecting investors with innovative technology projects.</p></div>
+<div><div class="flex items-center gap-3 mb-5"><div class="w-8 h-8 rounded-xl bg-black overflow-hidden flex items-center justify-center"><img src="logo.jpg" class="w-full h-full object-cover"></div><span class="font-d font-bold text-white text-sm">SOLARGROUP</span></div><p class="text-sm leading-relaxed">International investment platform connecting investors with innovative technology projects.</p></div>
 <div><h4 class="text-white font-d font-bold mb-5 text-sm">Platform</h4><ul class="space-y-3 text-sm"><li><a href="#" onclick="gp('home');return false" class="hover:text-white transition">Home</a></li><li><a href="#" onclick="gp('home');setTimeout(function(){ss('proj')},100);return false" class="hover:text-white transition">Projects</a></li><li><a href="#" onclick="gp('home');setTimeout(function(){ss('rel')},100);return false" class="hover:text-white transition">Why Us</a></li></ul></div>
 <div><h4 class="text-white font-d font-bold mb-5 text-sm">Support</h4><ul class="space-y-3 text-sm"><li><i class="fas fa-phone mr-2 text-b7/10"></i>+7 (495) 646-13-59</li><li><i class="fas fa-envelope mr-2 text-b7/10"></i>support@solargroup.pro</li></ul></div>
 <div><h4 class="text-white font-d font-bold mb-5 text-sm">Legal</h4><ul class="space-y-3 text-sm"><li><a href="#" class="hover:text-white transition">Privacy Policy</a></li><li><a href="#" class="hover:text-white transition">Terms of Service</a></li></ul></div>
@@ -556,9 +558,12 @@ Achieve demand forecasting, improve financial prospects, and become a co-owner o
 
 <!-- ==================== Scripts ==================== -->
 <script>
-var LS = 5200;
-var LP = 250;
-var SP = LP / LS;
+// --- UPDATED VARIABLES ---
+var LS = 5200; // 1 Lot = 5200 Shares
+var LP = 250; // Price per Lot
+var SP = 0.0481; // Fixed Price per Share
+var buyMode = 'lot'; // 'lot' or 'share'
+
 var cu = null;
 var cotp = '';
 var uf = null;
@@ -621,7 +626,7 @@ async function gp(p) {
     if (p === 'dash') rd();
     if (p === 'txs') rtx();
     if (p === 'admin') ra();
-    if (p === 'buy') cp();
+    if (p === 'buy') { setBuyMode('lot'); cp(); }
     if (p === 'otp') resetOtpPage();
 }
 
@@ -766,23 +771,64 @@ function resetOtpPage() {
     document.getElementById('otp-input-area').classList.remove('hidden');
 }
 
+// --- NEW BUY MODE TOGGLE ---
+function setBuyMode(mode) {
+    buyMode = mode;
+    var tabLot = document.getElementById('tab-lot');
+    var tabShare = document.getElementById('tab-share');
+    
+    if(mode === 'lot') {
+        tabLot.className = 'flex-1 py-3.5 rounded-xl font-bold text-sm bg-b6 text-white transition shadow-lg';
+        tabShare.className = 'flex-1 py-3.5 rounded-xl font-bold text-sm text-b7/50 hover:text-white transition';
+        document.getElementById('lbl-qty').innerText = 'Number of Lots';
+        document.getElementById('lbl-price-text').innerText = 'Price per Lot';
+        document.getElementById('lbl-summary-qty').innerText = 'Lots';
+        document.getElementById('bq').value = 1;
+    } else {
+        tabShare.className = 'flex-1 py-3.5 rounded-xl font-bold text-sm bg-b6 text-white transition shadow-lg';
+        tabLot.className = 'flex-1 py-3.5 rounded-xl font-bold text-sm text-b7/50 hover:text-white transition';
+        document.getElementById('lbl-qty').innerText = 'Number of Shares (Min 100)';
+        document.getElementById('lbl-price-text').innerText = 'Price per Share';
+        document.getElementById('lbl-summary-qty').innerText = 'Shares';
+        document.getElementById('bq').value = 100;
+    }
+    cp();
+}
+
 function cq(d) {
     var inp = document.getElementById('bq');
-    var v = Math.max(1, (parseInt(inp.value) || 1) + d);
-    inp.value = v; cp();
+    var current = parseInt(inp.value) || 0;
+    var step = (buyMode === 'share') ? 100 : 1;
+    var min = (buyMode === 'share') ? 100 : 1;
+    var v = Math.max(min, current + (d * step));
+    inp.value = v; 
+    cp();
 }
 
 function cp() {
-    var q = Math.max(1, parseInt(document.getElementById('bq').value) || 1);
-    var total = q * LP;
-    document.getElementById('ppv').textContent = '$' + LP.toFixed(2);
-    document.getElementById('qv').textContent = q;
+    var val = parseInt(document.getElementById('bq').value) || 0;
+    var price = (buyMode === 'share') ? SP : LP;
+    var total = val * price;
+    
+    document.getElementById('ppv').textContent = '$' + price.toFixed(buyMode === 'share' ? 4 : 2);
+    document.getElementById('qv').textContent = val;
     document.getElementById('tp').textContent = '$' + total.toFixed(2);
 }
 
 async function sbuy() {
-    var q = Math.max(1, parseInt(document.getElementById('bq').value) || 1);
-    var total = q * LP;
+    var val = parseInt(document.getElementById('bq').value) || 0;
+    
+    // Strict Minimum Validations
+    if(buyMode === 'share' && val < 100) {
+        tt('Minimum 100 shares required!', 'error');
+        return;
+    }
+    if(buyMode === 'lot' && val < 1) {
+        tt('Minimum 1 lot required!', 'error');
+        return;
+    }
+
+    var total = buyMode === 'share' ? val * SP : val * LP;
     if (!uf) { tt('Please upload payment screenshot', 'error'); return; }
     var u = gu();
     if (!u.email) { tt('Please login first', 'error'); gp('login'); return; }
@@ -796,10 +842,10 @@ async function sbuy() {
     var txId = String(Date.now());
     var tx = { 
         id: txId, 
-        email: u.email.toLowerCase().trim(), // Case issue fix 
-        type: 'lot', 
-        qty: q, 
-        price: LP, 
+        email: u.email.toLowerCase().trim(), 
+        type: buyMode, // 'lot' ya 'share' save hoga
+        qty: val, 
+        price: buyMode === 'share' ? SP : LP, 
         total: total, 
         status: 'pending', 
         date: new Date().toISOString(), 
@@ -813,14 +859,15 @@ async function sbuy() {
             var base64String = reader.result;
 
             try {
+                // Backend crash na ho isliye api mein lots ki jagah val hi bhej rahe hain
                 await fetch(`${API_URL}/api/send-payment`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         transaction_id: txId,
                         user_email: u.email.toLowerCase().trim(),
-                        lots: q,
-                        amount: total,
+                        lots: val, // Email pe admin ko qty dikhegi, price se wo samajh jayega
+                        amount: parseFloat(total.toFixed(2)),
                         screenshot_base64: base64String
                     })
                 });
@@ -837,7 +884,8 @@ async function sbuy() {
             uf = null; ud = null;
             document.getElementById('uph').classList.remove('hidden');
             document.getElementById('upv').classList.add('hidden');
-            document.getElementById('bq').value = 1; cp();
+            
+            setBuyMode('lot');
             
             tt('Purchase submitted for verification!', 'success');
             if (btn) {
@@ -873,37 +921,44 @@ function rd() {
     if (!u.email) { gp('login'); return; }
     document.getElementById('du').textContent = u.email.split('@')[0];
 
-    // Case issue fix: Har jagah toLowerCase add kiya hai taaki capital/small hone par transaction hide na ho
     var allOrders = go().filter(function(o) { return o.email.toLowerCase().trim() === u.email.toLowerCase().trim(); });
     var approvedLots = 0;
+    var extraShares = 0;
     
     for(var x = 0; x < allOrders.length; x++) {
         if(allOrders[x].status === 'approved' || allOrders[x].status === 'Active') {
-            approvedLots += parseInt(allOrders[x].qty);
+            if(allOrders[x].type === 'share') {
+                extraShares += parseInt(allOrders[x].qty);
+            } else {
+                approvedLots += parseInt(allOrders[x].qty);
+            }
         }
     }
     
-    var approvedShares = approvedLots * LS;
+    var approvedShares = (approvedLots * LS) + extraShares;
     var portfolioValue = approvedShares * SP;
 
-    document.getElementById('ds').textContent = approvedShares;
+    document.getElementById('ds').textContent = approvedShares.toLocaleString();
     document.getElementById('dl').textContent = approvedLots;
-    document.getElementById('dv').textContent = portfolioValue.toFixed(0);
+    document.getElementById('dv').textContent = portfolioValue.toFixed(2);
 
     var orders = allOrders.slice(-5).reverse();
     var rt = document.getElementById('drt');
     
     if (!orders.length) { 
-        rt.innerHTML = '<p class="text-b7/15 text-center py-12">No transactions yet. Buy your first lots!</p>'; 
+        rt.innerHTML = '<p class="text-b7/15 text-center py-12">No transactions yet. Buy your first shares!</p>'; 
     } else {
         var html = '';
         for (var i = 0; i < orders.length; i++) {
             var o = orders[i];
             var isApproved = (o.status === 'approved' || o.status === 'Active');
+            var title = o.type === 'share' ? 'Share Purchase' : 'Lot Purchase';
+            var unitText = o.type === 'share' ? 'Share(s)' : 'Lot(s)';
+            
             html += '<div class="gl rounded-xl p-4 flex items-center gap-4 border border-b6/6">';
             html += '<div class="w-10 h-10 rounded-xl ' + (isApproved ? 'bg-ac/10' : 'bg-am/10') + ' flex items-center justify-center flex-shrink-0"><i class="fas ' + (isApproved ? 'fa-check text-ac' : 'fa-clock text-am') + '"></i></div>';
-            html += '<div class="flex-1 min-w-0"><p class="text-white text-sm font-bold">Lot Purchase (ID: ' + o.id + ')</p>';
-            html += '<p class="text-b7/25 text-xs">' + new Date(o.date).toLocaleDateString() + ' — ' + o.qty + ' Lot(s) x $' + o.price + '</p></div>';
+            html += '<div class="flex-1 min-w-0"><p class="text-white text-sm font-bold">' + title + ' (ID: ' + o.id + ')</p>';
+            html += '<p class="text-b7/25 text-xs">' + new Date(o.date).toLocaleDateString() + ' — ' + o.qty + ' ' + unitText + ' x $' + parseFloat(o.price).toFixed(o.type === 'share' ? 4 : 2) + '</p></div>';
             html += '<div class="text-right"><p class="text-white font-bold text-sm">$' + o.total.toFixed(2) + '</p>';
             html += '<p class="text-xs font-semibold ' + (isApproved ? 'text-ac' : 'text-am') + '">' + o.status.charAt(0).toUpperCase() + o.status.slice(1) + '</p></div></div>';
         }
@@ -932,7 +987,6 @@ function rd() {
 function rtx() {
     var u = gu();
     if (!u.email) { gp('login'); return; }
-    // Case issue fix
     var orders = go().filter(function(o) { return o.email.toLowerCase().trim() === u.email.toLowerCase().trim(); }).reverse();
     var tl = document.getElementById('txl');
     if (!orders.length) { tl.innerHTML = '<p class="text-b7/15 text-center py-16">No transactions yet</p>'; return; }
@@ -942,11 +996,13 @@ function rtx() {
         var isApproved = (o.status === 'approved' || o.status === 'Active');
         var iconClass = isApproved ? 'fa-check-circle text-ac' : (o.status === 'rejected' ? 'fa-times-circle text-rn' : 'fa-clock text-am');
         var txtClass = isApproved ? 'bg-ac/10 text-ac' : (o.status === 'rejected' ? 'bg-rn/10 text-rn' : 'bg-am/10 text-am');
+        var title = o.type === 'share' ? 'Share Purchase' : 'Lot Purchase';
+        var unitText = o.type === 'share' ? 'shares' : 'lots';
         
         html += '<div class="gl2 rounded-2xl p-5 flex items-center gap-5 glow-b">';
         html += '<div class="w-12 h-12 rounded-xl bg-b6/8 flex items-center justify-center flex-shrink-0 ring-1 ring-b6/8"><i class="fas ' + iconClass + ' text-lg"></i></div>';
-        html += '<div class="flex-1 min-w-0"><p class="text-white font-bold">Lot Purchase (ID: ' + o.id + ') — ' + o.qty + ' units</p>';
-        html += '<p class="text-b7/25 text-sm mt-0.5">' + new Date(o.date).toLocaleString() + ' &middot; $' + o.price + '/unit</p></div>';
+        html += '<div class="flex-1 min-w-0"><p class="text-white font-bold">' + title + ' (ID: ' + o.id + ') — ' + o.qty + ' ' + unitText + '</p>';
+        html += '<p class="text-b7/25 text-sm mt-0.5">' + new Date(o.date).toLocaleString() + ' &middot; $' + parseFloat(o.price).toFixed(o.type === 'share' ? 4 : 2) + '/unit</p></div>';
         html += '<div class="text-right flex-shrink-0"><p class="text-white font-d font-bold text-lg">$' + o.total.toFixed(2) + '</p>';
         html += '<span class="inline-block mt-1 px-3 py-1 rounded-full text-[11px] font-bold ' + txtClass + '">' + o.status.toUpperCase() + '</span></div></div>';
     }
@@ -962,9 +1018,10 @@ function ra() {
         var html = '';
         for (var i = 0; i < pending.length; i++) {
             var o = pending[i];
+            var unitText = o.type === 'share' ? 'Shares: ' : 'Lots: ';
             html += '<div class="gl2 rounded-2xl p-6 glow-b"><div class="flex flex-col sm:flex-row sm:items-center gap-4">';
             html += '<div class="flex-1 min-w-0"><p class="text-white font-bold">' + o.email + '</p>';
-            html += '<p class="text-b7/25 text-sm mt-1">Lots: ' + o.qty + ' &middot; Total: $' + o.total.toFixed(2) + ' &middot; ' + new Date(o.date).toLocaleDateString() + '</p>';
+            html += '<p class="text-b7/25 text-sm mt-1">' + unitText + o.qty + ' &middot; Total: $' + o.total.toFixed(2) + ' &middot; ' + new Date(o.date).toLocaleDateString() + '</p>';
             if (o.file) html += '<p class="text-b7/15 text-xs mt-1"><i class="fas fa-image mr-1"></i>' + o.file + '</p>';
             html += '</div><div class="flex gap-3 flex-shrink-0">';
             html += '<button onclick="ao(\'' + o.id + '\',\'approved\')" class="px-5 py-2.5 bg-ac/10 text-ac font-bold rounded-xl hover:bg-ac/20 transition text-sm border border-ac/15"><i class="fas fa-check mr-1.5"></i>Approve</button>';
@@ -1085,7 +1142,6 @@ var rvObserver = new IntersectionObserver(function(entries) {
     }
 }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
 
-// Fixed DOMContentLoaded logic to forcefully show Admin Button if it matches allowed lists
 document.addEventListener('DOMContentLoaded', function() {
     var els = document.querySelectorAll('.rv');
     for (var i = 0; i < els.length; i++) { rvObserver.observe(els[i]); }
@@ -1106,7 +1162,7 @@ document.addEventListener('DOMContentLoaded', function() {
             var userEmail = u.email.toLowerCase().trim();
             if (allowedAdmins.includes(userEmail) || userEmail.includes('krishnapathak') || userEmail.includes('skyworld')) {
                 adminBtn.classList.remove('hidden');
-                adminBtn.style.display = 'flex'; // Force display just in case Tailwind classes conflict
+                adminBtn.style.display = 'flex'; 
             }
         }
     }
