@@ -7,8 +7,11 @@ export default async function handler(req, res) {
 
   const { email, otp } = req.body;
 
+  // 🔥 VERCEL FIX: Use Port 465 & Secure: true (Vercel allows this port instantly)
   const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
     auth: {
       user: 'delivery.solargroup.pro@gmail.com',
       pass: process.env.GMAIL_APP_PASSWORD
@@ -19,14 +22,17 @@ export default async function handler(req, res) {
     await transporter.sendMail({
       from: '"SOLARGROUP" <delivery.solargroup.pro@gmail.com>',
       to: email,
-      subject: 'Your Verification OTP',
-      text: `Your OTP code is: ${otp}`,
-      html: `<h3>Your Verification OTP is: <b>${otp}</b></h3>`
+      subject: 'SOLARGROUP - Verification OTP',
+      html: `<div style="font-family: Arial, sans-serif; padding: 20px;">
+               <h2>Welcome to SOLARGROUP</h2>
+               <p>Your secure verification OTP is:</p>
+               <h1 style="color: #2563eb; letter-spacing: 5px;">${otp}</h1>
+             </div>`
     });
 
-    return res.status(200).json({ status: 'success', message: 'OTP sent successfully' });
+    return res.status(200).json({ status: 'success', message: 'OTP sent' });
   } catch (error) {
-    console.error("OTP Error:", error);
+    console.error("Gmail Delivery Error:", error);
     return res.status(500).json({ status: 'error', message: error.message });
   }
 }
