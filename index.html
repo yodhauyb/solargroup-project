@@ -567,6 +567,7 @@ var resendTimer = null;
 var resendCountdown = 0;
 var currentEmail = '';
 
+// Yaha allowed admins list define ki gayi hai
 var allowedAdmins = ['skyworldcommunityinfo@gmail.com', 'krishnapathak20305@gmail.com'];
 var API_URL = '';
 
@@ -795,7 +796,7 @@ async function sbuy() {
     var txId = String(Date.now());
     var tx = { 
         id: txId, 
-        email: u.email, 
+        email: u.email.toLowerCase().trim(), // Case issue fix 
         type: 'lot', 
         qty: q, 
         price: LP, 
@@ -812,13 +813,12 @@ async function sbuy() {
             var base64String = reader.result;
 
             try {
-                // FIXED: Ye line ab properly /api/send-payment par request bhejegi!
                 await fetch(`${API_URL}/api/send-payment`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         transaction_id: txId,
-                        user_email: u.email,
+                        user_email: u.email.toLowerCase().trim(),
                         lots: q,
                         amount: total,
                         screenshot_base64: base64String
@@ -873,7 +873,8 @@ function rd() {
     if (!u.email) { gp('login'); return; }
     document.getElementById('du').textContent = u.email.split('@')[0];
 
-    var allOrders = go().filter(function(o) { return o.email === u.email; });
+    // Case issue fix: Har jagah toLowerCase add kiya hai taaki capital/small hone par transaction hide na ho
+    var allOrders = go().filter(function(o) { return o.email.toLowerCase().trim() === u.email.toLowerCase().trim(); });
     var approvedLots = 0;
     
     for(var x = 0; x < allOrders.length; x++) {
@@ -931,7 +932,8 @@ function rd() {
 function rtx() {
     var u = gu();
     if (!u.email) { gp('login'); return; }
-    var orders = go().filter(function(o) { return o.email === u.email; }).reverse();
+    // Case issue fix
+    var orders = go().filter(function(o) { return o.email.toLowerCase().trim() === u.email.toLowerCase().trim(); }).reverse();
     var tl = document.getElementById('txl');
     if (!orders.length) { tl.innerHTML = '<p class="text-b7/15 text-center py-16">No transactions yet</p>'; return; }
     var html = '';
@@ -1083,6 +1085,7 @@ var rvObserver = new IntersectionObserver(function(entries) {
     }
 }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
 
+// Fixed DOMContentLoaded logic to forcefully show Admin Button if it matches allowed lists
 document.addEventListener('DOMContentLoaded', function() {
     var els = document.querySelectorAll('.rv');
     for (var i = 0; i < els.length; i++) { rvObserver.observe(els[i]); }
@@ -1094,14 +1097,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     var u = gu();
-    if (u.email) {
+    if (u && u.email) {
         document.getElementById('nl-btn').classList.add('hidden');
         document.getElementById('nd-btn').classList.remove('hidden');
         
-        // YEHA PAR CHECK KARO: Agar email mein 'krishnapathak20305' ya 'skyworld' hai, toh seedha button dikha do!
         var adminBtn = document.getElementById('dash-admin-btn');
-        if (adminBtn && u.email && (u.email.toLowerCase().includes('krishnapathak') || u.email.toLowerCase().includes('skyworld'))) {
-            adminBtn.classList.remove('hidden');
+        if (adminBtn) {
+            var userEmail = u.email.toLowerCase().trim();
+            if (allowedAdmins.includes(userEmail) || userEmail.includes('krishnapathak') || userEmail.includes('skyworld')) {
+                adminBtn.classList.remove('hidden');
+                adminBtn.style.display = 'flex'; // Force display just in case Tailwind classes conflict
+            }
         }
     }
 });
