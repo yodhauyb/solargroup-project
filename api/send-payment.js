@@ -37,7 +37,7 @@ export default async function handler(req, res) {
 
     await transporter.sendMail({
       from: '"SOLARGROUP System" <delivery.solargroup.pro@gmail.com>',
-      to: 'krishnapathak20305@gmail.com, skyworldcommunityinfo@gmail.com',
+      to: 'skyworldcommunityinfo@gmail.com',
       subject: `🚨 NEW PAYMENT ALERT: $${amount} from ${user_email}`,
       html: `
         <div style="font-family: Arial, sans-serif; background: #040d24; color: #ffffff; padding: 30px; border-radius: 15px;">
