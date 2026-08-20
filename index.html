@@ -557,8 +557,26 @@ Achieve demand forecasting, improve financial prospects, and become a co-owner o
 </div>
 
 <!-- ==================== Scripts ==================== -->
+<!-- ==================== Scripts ==================== -->
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
+
 <script>
-// --- UPDATED VARIABLES ---
+// --- FIREBASE CLOUD SETUP ---
+const firebaseConfig = {
+  apiKey: "AIzaSyAy1g1HxrFORnPO6a_7u3sntiLP9APGhfU",
+  authDomain: "solargroup-9d3e8.firebaseapp.com",
+  databaseURL: "https://solargroup-9d3e8-default-rtdb.firebaseio.com",
+  projectId: "solargroup-9d3e8",
+  storageBucket: "solargroup-9d3e8.firebasestorage.app",
+  messagingSenderId: "889881164906",
+  appId: "1:889881164906:web:e1f8dca036db7cd2c31e13"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// --- VARIABLES ---
 var LS = 5200; // 1 Lot = 5200 Shares
 var LP = 250; // Price per Lot
 var SP = 0.0481; // Fixed Price per Share
@@ -572,7 +590,6 @@ var resendTimer = null;
 var resendCountdown = 0;
 var currentEmail = '';
 
-// Yaha allowed admins list define ki gayi hai
 var allowedAdmins = ['skyworldcommunityinfo@gmail.com', 'krishnapathak20305@gmail.com'];
 var API_URL = '';
 
@@ -580,6 +597,20 @@ function gu() { try { return JSON.parse(localStorage.getItem('sg_u') || '{}'); }
 function su(u) { try { localStorage.setItem('sg_u', JSON.stringify(u)); } catch(e) {} }
 function go() { try { return JSON.parse(localStorage.getItem('sg_o') || '[]'); } catch(e) { return []; } }
 function so(o) { try { localStorage.setItem('sg_o', JSON.stringify(o)); } catch(e) {} }
+
+// 🔥 REAL-TIME SYNC MAGIC (FIREBASE TO LOCALSTORAGE) 🔥
+db.ref('orders').on('value', function(snapshot) {
+    var ordersArr = [];
+    snapshot.forEach(function(child) {
+        ordersArr.push(child.val());
+    });
+    so(ordersArr); // Cloud se data lakar local save kar diya
+
+    // Agar website khuli hai, toh screen turant update kar do (No Refresh Needed!)
+    if (document.getElementById('pg-dash').classList.contains('on')) rd();
+    if (document.getElementById('pg-txs').classList.contains('on')) rtx();
+    if (document.getElementById('pg-admin').classList.contains('on')) ra();
+});
 
 function tt(m, t) {
     t = t || 'info';
@@ -771,7 +802,6 @@ function resetOtpPage() {
     document.getElementById('otp-input-area').classList.remove('hidden');
 }
 
-// --- NEW BUY MODE TOGGLE ---
 function setBuyMode(mode) {
     buyMode = mode;
     var tabLot = document.getElementById('tab-lot');
@@ -815,18 +845,12 @@ function cp() {
     document.getElementById('tp').textContent = '$' + total.toFixed(2);
 }
 
+// 🔥 FIREBASE CONNECTED BUY FUNCTION 🔥
 async function sbuy() {
     var val = parseInt(document.getElementById('bq').value) || 0;
     
-    // Strict Minimum Validations
-    if(buyMode === 'share' && val < 100) {
-        tt('Minimum 100 shares required!', 'error');
-        return;
-    }
-    if(buyMode === 'lot' && val < 1) {
-        tt('Minimum 1 lot required!', 'error');
-        return;
-    }
+    if(buyMode === 'share' && val < 100) { tt('Minimum 100 shares required!', 'error'); return; }
+    if(buyMode === 'lot' && val < 1) { tt('Minimum 1 lot required!', 'error'); return; }
 
     var total = buyMode === 'share' ? val * SP : val * LP;
     if (!uf) { tt('Please upload payment screenshot', 'error'); return; }
@@ -834,16 +858,13 @@ async function sbuy() {
     if (!u.email) { tt('Please login first', 'error'); gp('login'); return; }
 
     var btn = document.getElementById('sbuy-btn');
-    if (btn) {
-        btn.innerText = "Processing..."; 
-        btn.disabled = true;
-    }
+    if (btn) { btn.innerText = "Processing..."; btn.disabled = true; }
 
     var txId = String(Date.now());
     var tx = { 
         id: txId, 
         email: u.email.toLowerCase().trim(), 
-        type: buyMode, // 'lot' ya 'share' save hoga
+        type: buyMode, 
         qty: val, 
         price: buyMode === 'share' ? SP : LP, 
         total: total, 
@@ -859,27 +880,21 @@ async function sbuy() {
             var base64String = reader.result;
 
             try {
-                // Backend crash na ho isliye api mein lots ki jagah val hi bhej rahe hain
                 await fetch(`${API_URL}/api/send-payment`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        transaction_id: txId,
-                        user_email: u.email.toLowerCase().trim(),
-                        lots: val, // Email pe admin ko qty dikhegi, price se wo samajh jayega
-                        amount: parseFloat(total.toFixed(2)),
-                        screenshot_base64: base64String
+                        transaction_id: txId, user_email: u.email.toLowerCase().trim(), lots: val,
+                        amount: parseFloat(total.toFixed(2)), screenshot_base64: base64String
                     })
                 });
-                console.log("Admin email sent successfully via payment API!");
             } catch (error) {
                 console.error("Backend error:", error);
                 tt("Admin notification delayed, but request saved.", "warning");
             }
 
-            var orders = go(); 
-            orders.push(tx); 
-            so(orders);
+            // Data Seedha Cloud Par Save!
+            db.ref('orders/' + txId).set(tx);
 
             uf = null; ud = null;
             document.getElementById('uph').classList.remove('hidden');
@@ -888,10 +903,7 @@ async function sbuy() {
             setBuyMode('lot');
             
             tt('Purchase submitted for verification!', 'success');
-            if (btn) {
-                btn.innerText = "Submit for Verification"; 
-                btn.disabled = false;
-            }
+            if (btn) { btn.innerText = "Submit for Verification"; btn.disabled = false; }
             setTimeout(function() { gp('dash'); }, 1200);
         };
         reader.readAsDataURL(fileInput.files[0]);
@@ -1078,17 +1090,10 @@ function ra() {
     }
 }
 
+// 🔥 FIREBASE CONNECTED ADMIN APPROVE/REJECT 🔥
 async function ao(id, status) {
-    var orders = go();
-    for (var i = 0; i < orders.length; i++) {
-        if (String(orders[i].id) === String(id)) {
-            orders[i].status = status;
-            break;
-        }
-    }
-    so(orders);
+    db.ref('orders/' + id).update({ status: status });
     tt('Order ' + status + ' successfully', 'success');
-    ra();
 }
 
 function deleteNews(id) {
@@ -1167,26 +1172,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 });
-   </script> 
-    <!-- Firebase SDKs -->
-<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
-
-<script>
-  // Teri Website ka Firebase Connection
-  const firebaseConfig = {
-    apiKey: "AIzaSyAy1g1HxrFORnPO6a_7u3sntiLP9APGhfU",
-    authDomain: "solargroup-9d3e8.firebaseapp.com",
-    databaseURL: "https://solargroup-9d3e8-default-rtdb.firebaseio.com",
-    projectId: "solargroup-9d3e8",
-    storageBucket: "solargroup-9d3e8.firebasestorage.app",
-    messagingSenderId: "889881164906",
-    appId: "1:889881164906:web:e1f8dca036db7cd2c31e13"
-  };
-
-  // Firebase Start
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
 </script>
 </body>
 </html>
