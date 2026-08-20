@@ -1167,6 +1167,26 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 });
+   </script> 
+    <!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
+
+<script>
+  // Teri Website ka Firebase Connection
+  const firebaseConfig = {
+    apiKey: "AIzaSyAy1g1HxrFORnPO6a_7u3sntiLP9APGhfU",
+    authDomain: "solargroup-9d3e8.firebaseapp.com",
+    databaseURL: "https://solargroup-9d3e8-default-rtdb.firebaseio.com",
+    projectId: "solargroup-9d3e8",
+    storageBucket: "solargroup-9d3e8.firebasestorage.app",
+    messagingSenderId: "889881164906",
+    appId: "1:889881164906:web:e1f8dca036db7cd2c31e13"
+  };
+
+  // Firebase Start
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
 </script>
 </body>
 </html>
