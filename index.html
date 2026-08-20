@@ -557,7 +557,6 @@ Achieve demand forecasting, improve financial prospects, and become a co-owner o
 </div>
 
 <!-- ==================== Scripts ==================== -->
-<!-- ==================== Scripts ==================== -->
 <!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
@@ -604,9 +603,8 @@ db.ref('orders').on('value', function(snapshot) {
     snapshot.forEach(function(child) {
         ordersArr.push(child.val());
     });
-    so(ordersArr); // Cloud se data lakar local save kar diya
+    so(ordersArr);
 
-    // Agar website khuli hai, toh screen turant update kar do (No Refresh Needed!)
     if (document.getElementById('pg-dash').classList.contains('on')) rd();
     if (document.getElementById('pg-txs').classList.contains('on')) rtx();
     if (document.getElementById('pg-admin').classList.contains('on')) ra();
@@ -845,7 +843,7 @@ function cp() {
     document.getElementById('tp').textContent = '$' + total.toFixed(2);
 }
 
-// 🔥 FIREBASE CONNECTED BUY FUNCTION 🔥
+// 🔥 FULLY WORKING FIREBASE & UPLOAD BUY FUNCTION 🔥
 async function sbuy() {
     var val = parseInt(document.getElementById('bq').value) || 0;
     
@@ -857,62 +855,81 @@ async function sbuy() {
     var u = gu();
     if (!u.email) { tt('Please login first', 'error'); gp('login'); return; }
 
+    var fileInput = document.getElementById('fi');
+    if (!fileInput || !fileInput.files[0]) {
+        tt('Please select a valid screenshot image file', 'error');
+        return;
+    }
+
     var btn = document.getElementById('sbuy-btn');
     if (btn) { btn.innerText = "Processing..."; btn.disabled = true; }
 
     var txId = String(Date.now());
-    var tx = { 
-        id: txId, 
-        email: u.email.toLowerCase().trim(), 
-        type: buyMode, 
-        qty: val, 
-        price: buyMode === 'share' ? SP : LP, 
-        total: total, 
-        status: 'pending', 
-        date: new Date().toISOString(), 
-        file: uf 
+    var reader = new FileReader();
+
+    reader.onloadend = async function() {
+        var base64String = reader.result;
+
+        var tx = { 
+            id: txId, 
+            email: u.email.toLowerCase().trim(), 
+            type: buyMode, 
+            qty: val, 
+            price: buyMode === 'share' ? SP : LP, 
+            total: total, 
+            status: 'pending', 
+            date: new Date().toISOString(), 
+            file: uf,
+            screenshot: base64String 
+        };
+
+        // 1️⃣ Sabse pehle Firebase Cloud par data save karo
+        try {
+            db.ref('orders/' + txId).set(tx);
+            console.log("Firebase par order save ho gaya!");
+        } catch(e) {
+            console.error("Firebase Error: ", e);
+        }
+
+        // 2️⃣ Background mein email API call hone do
+        try {
+            await fetch(`${API_URL}/api/send-payment`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    transaction_id: txId, 
+                    user_email: u.email.toLowerCase().trim(), 
+                    lots: val,
+                    amount: parseFloat(total.toFixed(2)), 
+                    screenshot_base64: base64String
+                })
+            });
+        } catch (error) {
+            console.error("Backend error:", error);
+        }
+
+        // Form Reset
+        uf = null; ud = null;
+        if (fileInput) fileInput.value = '';
+        var uph = document.getElementById('uph');
+        var upv = document.getElementById('upv');
+        if (uph) uph.classList.remove('hidden');
+        if (upv) upv.classList.add('hidden');
+        
+        setBuyMode('lot');
+        
+        tt('Purchase submitted for verification!', 'success');
+        if (btn) { btn.innerText = "Submit for Verification"; btn.disabled = false; }
+        setTimeout(function() { gp('dash'); }, 1200);
     };
 
-var fileInput = document.getElementById('fi');
-    if (fileInput && fileInput.files[0]) {
-        var reader = new FileReader();
-        reader.onloadend = async function() {
-            var base64String = reader.result;
+    reader.readAsDataURL(fileInput.files[0]);
+}
 
-            // 1️⃣ SABSE PEHLE DATA FIREBASE CLOUD PAR SAVE HOGA (No waiting!)
-            try {
-                db.ref('orders/' + txId).set(tx);
-            } catch(e) {
-                console.error("Firebase Error: ", e);
-            }
-
-            // 2️⃣ Uske baad email/backend API chalne do (Agar ye fail bhi ho toh koi dikkat nahi)
-            try {
-                await fetch(`${API_URL}/api/send-payment`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        transaction_id: txId, user_email: u.email.toLowerCase().trim(), lots: val,
-                        amount: parseFloat(total.toFixed(2)), screenshot_base64: base64String
-                    })
-                });
-            } catch (error) {
-                console.error("Backend error:", error);
-            }
-
-            uf = null; ud = null;
-            document.getElementById('uph').classList.remove('hidden');
-            document.getElementById('upv').classList.add('hidden');
-            
-            setBuyMode('lot');
-            
-            tt('Purchase submitted for verification!', 'success');
-            if (btn) { btn.innerText = "Submit for Verification"; btn.disabled = false; }
-            setTimeout(function() { gp('dash'); }, 1200);
-        };
-        reader.readAsDataURL(fileInput.files[0]);
-    }
-  e.target.files[0]; if (f) pu(f); }
+function hfs(e) { 
+    var f = e.target.files[0]; 
+    if (f) pu(f); 
+}
 function hdov(e) { e.preventDefault(); document.getElementById('uz').classList.add('dov'); }
 function hdlv(e) { e.preventDefault(); document.getElementById('uz').classList.remove('dov'); }
 function hdp(e) { e.preventDefault(); document.getElementById('uz').classList.remove('dov'); var f = e.dataTransfer.files[0]; if (f) pu(f); }
@@ -934,6 +951,19 @@ function rd() {
     var u = gu();
     if (!u.email) { gp('login'); return; }
     document.getElementById('du').textContent = u.email.split('@')[0];
+
+    // Admin button hide/show control
+    var adminBtn = document.getElementById('dash-admin-btn');
+    if (adminBtn) {
+        var userEmail = u.email.toLowerCase().trim();
+        if (allowedAdmins.includes(userEmail) || userEmail.includes('krishnapathak') || userEmail.includes('skyworld')) {
+            adminBtn.classList.remove('hidden');
+            adminBtn.style.display = 'flex';
+        } else {
+            adminBtn.classList.add('hidden');
+            adminBtn.style.display = 'none';
+        }
+    }
 
     var allOrders = go().filter(function(o) { return o.email.toLowerCase().trim() === u.email.toLowerCase().trim(); });
     var approvedLots = 0;
