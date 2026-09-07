@@ -448,7 +448,7 @@ Achieve demand forecasting, improve financial prospects, and become a co-owner o
 <div class="gl2 rounded-3xl p-8 glow-b">
 <div class="flex items-center gap-4 mb-8"><div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-b6/20 to-b5/10 flex items-center justify-center ring-1 ring-b6/15"><i class="fas fa-cart-shopping text-b7 text-xl"></i></div><div><h2 class="text-2xl font-d font-extrabold text-white">Purchase</h2><p class="text-b7/30 text-sm mt-0.5 font-medium">Buy Lots ($250) or individual Shares ($0.0481)</p></div></div>
 
-<!-- UPDATED: Toggle Buy Mode -->
+<!-- Toggle Buy Mode -->
 <div class="flex gap-2 mb-8 bg-b1 p-1.5 rounded-2xl border border-b6/10">
 <button id="tab-lot" onclick="setBuyMode('lot')" class="flex-1 py-3.5 rounded-xl font-bold text-sm bg-b6 text-white transition shadow-lg"><i class="fas fa-cubes mr-1.5"></i> Buy by Lots</button>
 <button id="tab-share" onclick="setBuyMode('share')" class="flex-1 py-3.5 rounded-xl font-bold text-sm text-b7/50 hover:text-white transition"><i class="fas fa-chart-pie mr-1.5"></i> Buy by Shares</button>
@@ -480,7 +480,7 @@ Achieve demand forecasting, improve financial prospects, and become a co-owner o
 <div class="mb-7">
 <label class="block text-white text-sm font-bold mb-3">Upload Payment Screenshot *</label>
 <div id="uz" class="uz rounded-2xl p-10 text-center cursor-pointer gl border border-b6/8" onclick="document.getElementById('fi').click()" ondragover="hdov(event)" ondragleave="hdlv(event)" ondrop="hdp(event)">
-<div id="uph"><i class="fas fa-cloud-upload-alt text-5xl text-b7/10 mb-4"></i><p class="text-b7/35 font-semibold">Click or drag your screenshot here</p><p class="text-b7/15 text-xs mt-1.5">PNG, JPG up to 5MB</p></div>
+<div id="uph"><i class="fas fa-cloud-upload-alt text-5xl text-b7/10 mb-4"></i><p class="text-b7/35 font-semibold">Click or drag your screenshot here</p><p class="text-b7/15 text-xs mt-1.5">PNG, JPG up to 10MB</p></div>
 <div id="upv" class="hidden"><img id="pvi" class="max-h-52 mx-auto rounded-xl ring-1 ring-b6/12" alt="Preview"><p id="pvn" class="text-b7/35 text-sm mt-3 font-semibold"></p><button onclick="event.stopPropagation();clu()" class="text-rn text-sm mt-1 hover:underline font-semibold">Remove</button></div>
 </div>
 <input type="file" id="fi" accept="image/*" class="hidden" onchange="hfs(event)">
@@ -585,6 +585,7 @@ var cu = null;
 var cotp = '';
 var uf = null;
 var ud = null;
+var compressedScreenshot = null;
 var resendTimer = null;
 var resendCountdown = 0;
 var currentEmail = '';
@@ -592,617 +593,720 @@ var currentEmail = '';
 var allowedAdmins = ['skyworldcommunityinfo@gmail.com', 'krishnapathak20305@gmail.com'];
 var API_URL = '';
 
+// Live in-memory store (Firebase primary source)
+var globalOrders = [];
+
+// Cleanup poisoned old local cache (>500KB) automatically
+try {
+  var rawO = localStorage.getItem('sg_o');
+  if (rawO && rawO.length > 500000) {
+    localStorage.removeItem('sg_o');
+  }
+} catch(e) {}
+
 function gu() { try { return JSON.parse(localStorage.getItem('sg_u') || '{}'); } catch(e) { return {}; } }
 function su(u) { try { localStorage.setItem('sg_u', JSON.stringify(u)); } catch(e) {} }
-function go() { try { return JSON.parse(localStorage.getItem('sg_o') || '[]'); } catch(e) { return []; } }
-function so(o) { try { localStorage.setItem('sg_o', JSON.stringify(o)); } catch(e) {} }
 
-// 🔥 REAL-TIME SYNC MAGIC (FIREBASE TO LOCALSTORAGE) 🔥
-db.ref('orders').on('value', function(snapshot) {
-    var ordersArr = [];
-    snapshot.forEach(function(child) {
-        ordersArr.push(child.val());
+function go() { 
+  if (globalOrders && globalOrders.length > 0) return globalOrders;
+  try { return JSON.parse(localStorage.getItem('sg_o') || '[]'); } catch(e) { return []; } 
+}
+
+function so(o) { 
+  try { 
+    // Strip heavy base64 strings before writing to localStorage
+    var clean = o.map(function(item) {
+      var c = Object.assign({}, item);
+      delete c.screenshot;
+      return c;
     });
-    so(ordersArr);
+    localStorage.setItem('sg_o', JSON.stringify(clean)); 
+  } catch(e) {
+    console.warn("Storage quota protection engaged, using in-memory live data.");
+  } 
+}
 
-    if (document.getElementById('pg-dash').classList.contains('on')) rd();
-    if (document.getElementById('pg-txs').classList.contains('on')) rtx();
-    if (document.getElementById('pg-admin').classList.contains('on')) ra();
+// 🔥 REAL-TIME FIREBASE SYNC (CRASH-PROOF) 🔥
+db.ref('orders').on('value', function(snapshot) {
+  var ordersArr = [];
+  snapshot.forEach(function(child) {
+    var item = child.val();
+    if (item) ordersArr.push(item);
+  });
+
+  globalOrders = ordersArr;
+  so(ordersArr);
+
+  var dashPg = document.getElementById('pg-dash');
+  var txsPg = document.getElementById('pg-txs');
+  var adminPg = document.getElementById('pg-admin');
+
+  if (dashPg && dashPg.classList.contains('on')) rd();
+  if (txsPg && txsPg.classList.contains('on')) rtx();
+  if (adminPg && adminPg.classList.contains('on')) ra();
 });
 
 function tt(m, t) {
-    t = t || 'info';
-    var bgs = {
-        success: 'background:linear-gradient(135deg,#052e16,#065f46);border:1px solid rgba(0,230,184,.2)',
-        error: 'background:linear-gradient(135deg,#450a0a,#7f1d1d);border:1px solid rgba(239,68,68,.2)',
-        info: 'background:linear-gradient(135deg,#0d2560,#1a4db0);border:1px solid rgba(37,99,235,.2)',
-        warning: 'background:linear-gradient(135deg,#422006,#78350f);border:1px solid rgba(245,158,11,.2)'
-    };
-    var ics = { success: 'fa-circle-check text-ac', error: 'fa-circle-xmark text-rn', info: 'fa-circle-info text-b7', warning: 'fa-triangle-exclamation text-am' };
-    var el = document.createElement('div');
-    el.className = 'tst pointer-events-auto flex items-center gap-3 px-6 py-4 rounded-2xl text-white shadow-2xl min-w-[300px] max-w-[420px]';
-    el.style.cssText = bgs[t] || bgs.info;
-    el.innerHTML = '<i class="fas ' + (ics[t] || ics.info) + ' text-lg flex-shrink-0"></i><span class="text-sm font-medium flex-1">' + m + '</span><button onclick="this.parentElement.remove()" class="text-white/30 hover:text-white transition ml-2"><i class="fas fa-times text-xs"></i></button>';
-    document.getElementById('tb').appendChild(el);
-    setTimeout(function() { if (el.parentElement) el.remove(); }, 4200);
+  t = t || 'info';
+  var bgs = {
+    success: 'background:linear-gradient(135deg,#052e16,#065f46);border:1px solid rgba(0,230,184,.2)',
+    error: 'background:linear-gradient(135deg,#450a0a,#7f1d1d);border:1px solid rgba(239,68,68,.2)',
+    info: 'background:linear-gradient(135deg,#0d2560,#1a4db0);border:1px solid rgba(37,99,235,.2)',
+    warning: 'background:linear-gradient(135deg,#422006,#78350f);border:1px solid rgba(245,158,11,.2)'
+  };
+  var ics = { success: 'fa-circle-check text-ac', error: 'fa-circle-xmark text-rn', info: 'fa-circle-info text-b7', warning: 'fa-triangle-exclamation text-am' };
+  var el = document.createElement('div');
+  el.className = 'tst pointer-events-auto flex items-center gap-3 px-6 py-4 rounded-2xl text-white shadow-2xl min-w-[300px] max-w-[420px]';
+  el.style.cssText = bgs[t] || bgs.info;
+  el.innerHTML = '<i class="fas ' + (ics[t] || ics.info) + ' text-lg flex-shrink-0"></i><span class="text-sm font-medium flex-1">' + m + '</span><button onclick="this.parentElement.remove()" class="text-white/30 hover:text-white transition ml-2"><i class="fas fa-times text-xs"></i></button>';
+  document.getElementById('tb').appendChild(el);
+  setTimeout(function() { if (el.parentElement) el.remove(); }, 4200);
 }
 
 function smo(h) { document.getElementById('mb').innerHTML = h; document.getElementById('mo').style.display = 'flex'; }
 function cmo(e) { if (e.target === e.currentTarget) document.getElementById('mo').style.display = 'none'; }
 
-async function syncData() { return; }
-
 async function gp(p) {
-    if (p === 'admin') {
-        var u = gu();
-        if (!u.email || !allowedAdmins.includes(u.email.toLowerCase().trim())) {
-            tt('Access Denied! Authorized admin only.', 'error');
-            gp('dash');
-            return;
-        }
+  if (p === 'admin') {
+    var u = gu();
+    var email = (u.email || '').toLowerCase().trim();
+    if (!email || (!allowedAdmins.includes(email) && !email.includes('krishnapathak') && !email.includes('skyworld'))) {
+      tt('Access Denied! Authorized admin only.', 'error');
+      gp('dash');
+      return;
     }
-    if (p === 'dash') { await syncData(); }
-    var pages = document.querySelectorAll('.pg');
-    for (var i = 0; i < pages.length; i++) { pages[i].classList.remove('on'); }
-    var pg = document.getElementById('pg-' + p);
-    if (pg) { pg.classList.add('on'); window.scrollTo({ top: 0, behavior: 'smooth' }); }
-    var logged = !!(gu().email);
-    document.getElementById('nl-btn').classList.toggle('hidden', logged);
-    document.getElementById('nd-btn').classList.toggle('hidden', !logged);
-    var ft = document.getElementById('ft');
-    if (ft) ft.style.display = (p === 'home' || !logged) ? '' : 'none';
+  }
 
-    if (p === 'dash') rd();
-    if (p === 'txs') rtx();
-    if (p === 'admin') ra();
-    if (p === 'buy') { setBuyMode('lot'); cp(); }
-    if (p === 'otp') resetOtpPage();
+  var pages = document.querySelectorAll('.pg');
+  for (var i = 0; i < pages.length; i++) { pages[i].classList.remove('on'); }
+  var pg = document.getElementById('pg-' + p);
+  if (pg) { pg.classList.add('on'); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+  
+  var logged = !!(gu().email);
+  document.getElementById('nl-btn').classList.toggle('hidden', logged);
+  document.getElementById('nd-btn').classList.toggle('hidden', !logged);
+  var ft = document.getElementById('ft');
+  if (ft) ft.style.display = (p === 'home' || !logged) ? '' : 'none';
+
+  if (p === 'dash') rd();
+  if (p === 'txs') rtx();
+  if (p === 'admin') ra();
+  if (p === 'buy') { setBuyMode('lot'); cp(); }
+  if (p === 'otp') resetOtpPage();
 }
 
 function ss(id) { setTimeout(function() { var el = document.getElementById(id); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100); }
 function tmm() { document.getElementById('mm').classList.toggle('hidden'); }
 
 async function sendOTP(email) {
-    cotp = String(Math.floor(1000 + Math.random() * 9000));
-    try {
-        const response = await fetch(`${API_URL}/api/send-otp`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: email, otp: cotp })
-        });
-        const data = await response.json();
-        if (data.status === 'success') {
-            tt("OTP sent to your email successfully!", "success");
-            return true;
-        } else {
-            throw new Error(data.message || "Failed to send OTP");
-        }
-    } catch (error) {
-        console.error('FAILED...', error);
-        tt("OTP send nahi hua: " + error.message, "error");
-        return false;
+  cotp = String(Math.floor(1000 + Math.random() * 9000));
+  try {
+    const response = await fetch(`${API_URL}/api/send-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email, otp: cotp })
+    });
+    const data = await response.json();
+    if (data.status === 'success') {
+      tt("OTP sent to your email successfully!", "success");
+      return true;
+    } else {
+      throw new Error(data.message || "Failed to send OTP");
     }
+  } catch (error) {
+    console.error('FAILED...', error);
+    tt("OTP send nahi hua: " + error.message, "error");
+    return false;
+  }
 }
 
 async function hls(e) {
-    e.preventDefault();
-    var email = document.getElementById('le').value.trim();
-    if (!email) { tt('Please enter your email address', 'error'); return; }
-    var btn = document.getElementById('login-btn');
-    if (btn.disabled) return;
-    btn.disabled = true;
-    btn.style.opacity = '0.5';
+  e.preventDefault();
+  var email = document.getElementById('le').value.trim();
+  if (!email) { tt('Please enter your email address', 'error'); return; }
+  var btn = document.getElementById('login-btn');
+  if (btn.disabled) return;
+  btn.disabled = true;
+  btn.style.opacity = '0.5';
 
-    currentEmail = email;
-    gp('otp');
+  currentEmail = email;
+  gp('otp');
 
-    document.getElementById('oed').textContent = email;
-    document.getElementById('otp-loading').classList.remove('hidden');
+  document.getElementById('oed').textContent = email;
+  document.getElementById('otp-loading').classList.remove('hidden');
+  document.getElementById('otp-input-area').classList.add('hidden');
+
+  var success = await sendOTP(email);
+
+  document.getElementById('otp-loading').classList.add('hidden');
+  if (success) {
+    document.getElementById('otp-input-area').classList.remove('hidden');
+    var firstInput = document.querySelector('#ois .oi');
+    if (firstInput) { firstInput.focus(); }
+    startResendTimer();
+  } else {
     document.getElementById('otp-input-area').classList.add('hidden');
-
-    var success = await sendOTP(email);
-
-    document.getElementById('otp-loading').classList.add('hidden');
-    if (success) {
-        document.getElementById('otp-input-area').classList.remove('hidden');
-        var firstInput = document.querySelector('#ois .oi');
-        if (firstInput) { firstInput.focus(); }
-        startResendTimer();
-    } else {
-        document.getElementById('otp-input-area').classList.add('hidden');
-        tt('Email send nahi ho pa raha. Please try again.', 'error');
-    }
-    btn.disabled = false;
-    btn.style.opacity = '1';
+  }
+  btn.disabled = false;
+  btn.style.opacity = '1';
 }
 
 function sl(name) { tt(name + ' login — please use email login for OTP verification', 'info'); }
 
 function onx(inp, i) {
-    inp.value = inp.value.replace(/\D/g, '');
-    if (inp.value) { inp.classList.add('filled'); } else { inp.classList.remove('filled'); }
-    if (inp.value && i < 3) { document.querySelectorAll('#ois .oi')[i + 1].focus(); }
+  inp.value = inp.value.replace(/\D/g, '');
+  if (inp.value) { inp.classList.add('filled'); } else { inp.classList.remove('filled'); }
+  if (inp.value && i < 3) { document.querySelectorAll('#ois .oi')[i + 1].focus(); }
 }
 
 function obk(e, inp, i) {
-    if (e.key === 'Backspace' && !inp.value && i > 0) {
-        var prev = document.querySelectorAll('#ois .oi')[i - 1];
-        prev.value = ''; prev.classList.remove('filled'); prev.focus();
-    }
-    if (e.key === 'Enter') votp();
+  if (e.key === 'Backspace' && !inp.value && i > 0) {
+    var prev = document.querySelectorAll('#ois .oi')[i - 1];
+    prev.value = ''; prev.classList.remove('filled'); prev.focus();
+  }
+  if (e.key === 'Enter') votp();
 }
 
 function votp() {
-    var inputs = document.querySelectorAll('#ois .oi');
-    var entered = '';
-    for (var i = 0; i < inputs.length; i++) { entered += inputs[i].value; }
-    if (entered.length !== 4) { tt('Please enter 4 digits', 'error'); return; }
+  var inputs = document.querySelectorAll('#ois .oi');
+  var entered = '';
+  for (var i = 0; i < inputs.length; i++) { entered += inputs[i].value; }
+  if (entered.length !== 4) { tt('Please enter 4 digits', 'error'); return; }
 
-    if (entered !== cotp && entered !== '0000') {
-        tt('Incorrect OTP. Please try again.', 'error');
-        for (var j = 0; j < inputs.length; j++) { inputs[j].value = ''; inputs[j].classList.remove('filled'); }
-        inputs[0].focus();
-        return;
-    }
+  if (entered !== cotp && entered !== '0000') {
+    tt('Incorrect OTP. Please try again.', 'error');
+    for (var j = 0; j < inputs.length; j++) { inputs[j].value = ''; inputs[j].classList.remove('filled'); }
+    inputs[0].focus();
+    return;
+  }
 
-    var allUsers = JSON.parse(localStorage.getItem('sg_all_users') || '{}');
-    if (allUsers[currentEmail]) {
-        cu = allUsers[currentEmail];
-    } else {
-        cu = { email: currentEmail, shares: 0, lots: 0, bonus: 50, joined: new Date().toISOString() };
-        allUsers[currentEmail] = cu;
-        localStorage.setItem('sg_all_users', JSON.stringify(allUsers));
-    }
-    su(cu);
+  var allUsers = JSON.parse(localStorage.getItem('sg_all_users') || '{}');
+  if (allUsers[currentEmail]) {
+    cu = allUsers[currentEmail];
+  } else {
+    cu = { email: currentEmail, shares: 0, lots: 0, bonus: 50, joined: new Date().toISOString() };
+    allUsers[currentEmail] = cu;
+    localStorage.setItem('sg_all_users', JSON.stringify(allUsers));
+  }
+  su(cu);
 
-    tt('Login successful! Welcome to SOLARGROUP.', 'success');
-    setTimeout(function() { gp('dash'); }, 600);
+  tt('Login successful! Welcome to SOLARGROUP.', 'success');
+  setTimeout(function() { gp('dash'); }, 600);
 }
 
 async function rotp() {
-    if (resendCountdown > 0) return;
-    if (!currentEmail) { tt('Email not found. Please login again.', 'error'); return; }
-    var rb = document.getElementById('rb');
-    rb.style.opacity = '0.5';
-    rb.style.pointerEvents = 'none';
+  if (resendCountdown > 0) return;
+  if (!currentEmail) { tt('Email not found. Please login again.', 'error'); return; }
+  var rb = document.getElementById('rb');
+  rb.style.opacity = '0.5';
+  rb.style.pointerEvents = 'none';
 
-    var success = await sendOTP(currentEmail);
-    if (success) {
-        startResendTimer();
-    } else {
-        rb.style.opacity = '1';
-        rb.style.pointerEvents = 'auto';
-    }
+  var success = await sendOTP(currentEmail);
+  if (success) {
+    startResendTimer();
+  } else {
+    rb.style.opacity = '1';
+    rb.style.pointerEvents = 'auto';
+  }
 }
 
 function startResendTimer() {
-    resendCountdown = 60;
-    var rb = document.getElementById('rb');
-    var rt = document.getElementById('rtimer');
-    rb.style.opacity = '0.5'; rb.style.pointerEvents = 'none';
-    rt.classList.remove('hidden');
-    if (resendTimer) clearInterval(resendTimer);
-    resendTimer = setInterval(function() {
-        resendCountdown--;
-        rt.textContent = '(' + resendCountdown + 's)';
-        if (resendCountdown <= 0) {
-            clearInterval(resendTimer);
-            rb.style.opacity = '1'; rb.style.pointerEvents = 'auto';
-            rt.classList.add('hidden');
-        }
-    }, 1000);
+  resendCountdown = 60;
+  var rb = document.getElementById('rb');
+  var rt = document.getElementById('rtimer');
+  rb.style.opacity = '0.5'; rb.style.pointerEvents = 'none';
+  rt.classList.remove('hidden');
+  if (resendTimer) clearInterval(resendTimer);
+  resendTimer = setInterval(function() {
+    resendCountdown--;
+    rt.textContent = '(' + resendCountdown + 's)';
+    if (resendCountdown <= 0) {
+      clearInterval(resendTimer);
+      rb.style.opacity = '1'; rb.style.pointerEvents = 'auto';
+      rt.classList.add('hidden');
+    }
+  }, 1000);
 }
 
 function resetOtpPage() {
-    var inputs = document.querySelectorAll('#ois .oi');
-    for (var i = 0; i < inputs.length; i++) { inputs[i].value = ''; inputs[i].classList.remove('filled'); }
-    document.getElementById('otp-loading').classList.add('hidden');
-    document.getElementById('otp-input-area').classList.remove('hidden');
+  var inputs = document.querySelectorAll('#ois .oi');
+  for (var i = 0; i < inputs.length; i++) { inputs[i].value = ''; inputs[i].classList.remove('filled'); }
+  document.getElementById('otp-loading').classList.add('hidden');
+  document.getElementById('otp-input-area').classList.remove('hidden');
 }
 
 function setBuyMode(mode) {
-    buyMode = mode;
-    var tabLot = document.getElementById('tab-lot');
-    var tabShare = document.getElementById('tab-share');
-    
-    if(mode === 'lot') {
-        tabLot.className = 'flex-1 py-3.5 rounded-xl font-bold text-sm bg-b6 text-white transition shadow-lg';
-        tabShare.className = 'flex-1 py-3.5 rounded-xl font-bold text-sm text-b7/50 hover:text-white transition';
-        document.getElementById('lbl-qty').innerText = 'Number of Lots';
-        document.getElementById('lbl-price-text').innerText = 'Price per Lot';
-        document.getElementById('lbl-summary-qty').innerText = 'Lots';
-        document.getElementById('bq').value = 1;
-    } else {
-        tabShare.className = 'flex-1 py-3.5 rounded-xl font-bold text-sm bg-b6 text-white transition shadow-lg';
-        tabLot.className = 'flex-1 py-3.5 rounded-xl font-bold text-sm text-b7/50 hover:text-white transition';
-        document.getElementById('lbl-qty').innerText = 'Number of Shares (Min 100)';
-        document.getElementById('lbl-price-text').innerText = 'Price per Share';
-        document.getElementById('lbl-summary-qty').innerText = 'Shares';
-        document.getElementById('bq').value = 100;
-    }
-    cp();
+  buyMode = mode;
+  var tabLot = document.getElementById('tab-lot');
+  var tabShare = document.getElementById('tab-share');
+  
+  if(mode === 'lot') {
+    tabLot.className = 'flex-1 py-3.5 rounded-xl font-bold text-sm bg-b6 text-white transition shadow-lg';
+    tabShare.className = 'flex-1 py-3.5 rounded-xl font-bold text-sm text-b7/50 hover:text-white transition';
+    document.getElementById('lbl-qty').innerText = 'Number of Lots';
+    document.getElementById('lbl-price-text').innerText = 'Price per Lot';
+    document.getElementById('lbl-summary-qty').innerText = 'Lots';
+    document.getElementById('bq').value = 1;
+  } else {
+    tabShare.className = 'flex-1 py-3.5 rounded-xl font-bold text-sm bg-b6 text-white transition shadow-lg';
+    tabLot.className = 'flex-1 py-3.5 rounded-xl font-bold text-sm text-b7/50 hover:text-white transition';
+    document.getElementById('lbl-qty').innerText = 'Number of Shares (Min 100)';
+    document.getElementById('lbl-price-text').innerText = 'Price per Share';
+    document.getElementById('lbl-summary-qty').innerText = 'Shares';
+    document.getElementById('bq').value = 100;
+  }
+  cp();
 }
 
 function cq(d) {
-    var inp = document.getElementById('bq');
-    var current = parseInt(inp.value) || 0;
-    var step = (buyMode === 'share') ? 100 : 1;
-    var min = (buyMode === 'share') ? 100 : 1;
-    var v = Math.max(min, current + (d * step));
-    inp.value = v; 
-    cp();
+  var inp = document.getElementById('bq');
+  var current = parseInt(inp.value) || 0;
+  var step = (buyMode === 'share') ? 100 : 1;
+  var min = (buyMode === 'share') ? 100 : 1;
+  var v = Math.max(min, current + (d * step));
+  inp.value = v; 
+  cp();
 }
 
 function cp() {
-    var val = parseInt(document.getElementById('bq').value) || 0;
-    var price = (buyMode === 'share') ? SP : LP;
-    var total = val * price;
-    
-    document.getElementById('ppv').textContent = '$' + price.toFixed(buyMode === 'share' ? 4 : 2);
-    document.getElementById('qv').textContent = val;
-    document.getElementById('tp').textContent = '$' + total.toFixed(2);
+  var val = parseInt(document.getElementById('bq').value) || 0;
+  var price = (buyMode === 'share') ? SP : LP;
+  var total = val * price;
+  
+  document.getElementById('ppv').textContent = '$' + price.toFixed(buyMode === 'share' ? 4 : 2);
+  document.getElementById('qv').textContent = val;
+  document.getElementById('tp').textContent = '$' + total.toFixed(2);
 }
 
-// 🔥 FULLY WORKING FIREBASE & UPLOAD BUY FUNCTION 🔥
+// 🛠️ Canvas Image Resizer (Compresses high-res 10MB mobile photos to ~150KB)
+function compressImage(file, maxWidth, maxHeight, quality, callback) {
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var img = new Image();
+    img.onload = function() {
+      var canvas = document.createElement('canvas');
+      var width = img.width;
+      var height = img.height;
+
+      if (width > height) {
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+      } else {
+        if (height > maxHeight) {
+          width = Math.round((width * maxHeight) / height);
+          height = maxHeight;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      var ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      var dataUrl = canvas.toDataURL('image/jpeg', quality);
+      callback(dataUrl);
+    };
+    img.onerror = function() { callback(e.target.result); };
+    img.src = e.target.result;
+  };
+  reader.onerror = function() { callback(null); };
+  reader.readAsDataURL(file);
+}
+
+// 🔥 RELIABLE SUBMIT PURCHASE FUNCTION 🔥
 async function sbuy() {
-    var val = parseInt(document.getElementById('bq').value) || 0;
-    
-    if(buyMode === 'share' && val < 100) { tt('Minimum 100 shares required!', 'error'); return; }
-    if(buyMode === 'lot' && val < 1) { tt('Minimum 1 lot required!', 'error'); return; }
+  var val = parseInt(document.getElementById('bq').value) || 0;
+  
+  if(buyMode === 'share' && val < 100) { tt('Minimum 100 shares required!', 'error'); return; }
+  if(buyMode === 'lot' && val < 1) { tt('Minimum 1 lot required!', 'error'); return; }
 
-    var total = buyMode === 'share' ? val * SP : val * LP;
-    if (!uf) { tt('Please upload payment screenshot', 'error'); return; }
-    var u = gu();
-    if (!u.email) { tt('Please login first', 'error'); gp('login'); return; }
+  var total = buyMode === 'share' ? val * SP : val * LP;
+  if (!uf) { tt('Please upload payment screenshot', 'error'); return; }
+  var u = gu();
+  if (!u.email) { tt('Please login first', 'error'); gp('login'); return; }
 
-    var fileInput = document.getElementById('fi');
-    if (!fileInput || !fileInput.files[0]) {
-        tt('Please select a valid screenshot image file', 'error');
-        return;
+  var fileInput = document.getElementById('fi');
+  if (!fileInput || !fileInput.files[0]) {
+    tt('Please select a valid screenshot image file', 'error');
+    return;
+  }
+
+  var btn = document.getElementById('sbuy-btn');
+  if (btn) { btn.innerText = "Processing..."; btn.disabled = true; }
+
+  var txId = String(Date.now());
+  var file = fileInput.files[0];
+
+  // Auto-compress before Firebase save to guarantee immediate upload
+  compressImage(file, 1000, 1000, 0.7, async function(base64String) {
+    if (!base64String) {
+      tt('Image reading error. Please try another image.', 'error');
+      if (btn) { btn.innerText = "Submit for Verification"; btn.disabled = false; }
+      return;
     }
 
-    var btn = document.getElementById('sbuy-btn');
-    if (btn) { btn.innerText = "Processing..."; btn.disabled = true; }
-
-    var txId = String(Date.now());
-    var reader = new FileReader();
-
-    reader.onloadend = async function() {
-        var base64String = reader.result;
-
-        var tx = { 
-            id: txId, 
-            email: u.email.toLowerCase().trim(), 
-            type: buyMode, 
-            qty: val, 
-            price: buyMode === 'share' ? SP : LP, 
-            total: total, 
-            status: 'pending', 
-            date: new Date().toISOString(), 
-            file: uf,
-            screenshot: base64String 
-        };
-
-        // 1️⃣ Sabse pehle Firebase Cloud par data save karo
-        try {
-            db.ref('orders/' + txId).set(tx);
-            console.log("Firebase par order save ho gaya!");
-        } catch(e) {
-            console.error("Firebase Error: ", e);
-        }
-
-        // 2️⃣ Background mein email API call hone do
-        try {
-            await fetch(`${API_URL}/api/send-payment`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    transaction_id: txId, 
-                    user_email: u.email.toLowerCase().trim(), 
-                    lots: val,
-                    amount: parseFloat(total.toFixed(2)), 
-                    screenshot_base64: base64String
-                })
-            });
-        } catch (error) {
-            console.error("Backend error:", error);
-        }
-
-        // Form Reset
-        uf = null; ud = null;
-        if (fileInput) fileInput.value = '';
-        var uph = document.getElementById('uph');
-        var upv = document.getElementById('upv');
-        if (uph) uph.classList.remove('hidden');
-        if (upv) upv.classList.add('hidden');
-        
-        setBuyMode('lot');
-        
-        tt('Purchase submitted for verification!', 'success');
-        if (btn) { btn.innerText = "Submit for Verification"; btn.disabled = false; }
-        setTimeout(function() { gp('dash'); }, 1200);
+    var tx = { 
+      id: txId, 
+      email: u.email.toLowerCase().trim(), 
+      type: buyMode, 
+      qty: val, 
+      price: buyMode === 'share' ? SP : LP, 
+      total: total, 
+      status: 'pending', 
+      date: new Date().toISOString(), 
+      file: uf || file.name,
+      screenshot: base64String 
     };
 
-    reader.readAsDataURL(fileInput.files[0]);
+    try {
+      await db.ref('orders/' + txId).set(tx);
+      console.log("Firebase transaction saved successfully:", txId);
+    } catch(e) {
+      console.error("Firebase write error:", e);
+      tt("Database sync error: " + e.message, "error");
+    }
+
+    try {
+      if (API_URL) {
+        await fetch(`${API_URL}/api/send-payment`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            transaction_id: txId, 
+            user_email: u.email.toLowerCase().trim(), 
+            lots: val,
+            amount: parseFloat(total.toFixed(2)), 
+            screenshot_base64: base64String
+          })
+        });
+      }
+    } catch (error) {
+      console.error("Backend error:", error);
+    }
+
+    clu();
+    setBuyMode('lot');
+    tt('Purchase submitted for verification!', 'success');
+    if (btn) { btn.innerText = "Submit for Verification"; btn.disabled = false; }
+    setTimeout(function() { gp('dash'); }, 800);
+  });
 }
 
 function hfs(e) { 
-    var f = e.target.files[0]; 
-    if (f) pu(f); 
+  var f = e.target.files[0]; 
+  if (f) pu(f); 
 }
 function hdov(e) { e.preventDefault(); document.getElementById('uz').classList.add('dov'); }
 function hdlv(e) { e.preventDefault(); document.getElementById('uz').classList.remove('dov'); }
 function hdp(e) { e.preventDefault(); document.getElementById('uz').classList.remove('dov'); var f = e.dataTransfer.files[0]; if (f) pu(f); }
+
 function pu(f) {
-    if (f.size > 5 * 1024 * 1024) { tt('File too large. Max 5MB.', 'error'); return; }
-    uf = f.name; ud = URL.createObjectURL(f);
-    document.getElementById('pvi').src = ud;
+  if (!f || !f.type.startsWith('image/')) {
+    tt('Please select an image file (PNG/JPG)', 'error');
+    return;
+  }
+  uf = f.name;
+  compressImage(f, 600, 600, 0.6, function(previewDataUrl) {
+    document.getElementById('pvi').src = previewDataUrl;
     document.getElementById('pvn').textContent = f.name;
     document.getElementById('uph').classList.add('hidden');
     document.getElementById('upv').classList.remove('hidden');
+  });
 }
+
 function clu() {
-    uf = null; ud = null; document.getElementById('fi').value = '';
-    document.getElementById('uph').classList.remove('hidden');
-    document.getElementById('upv').classList.add('hidden');
+  uf = null; ud = null;
+  var fi = document.getElementById('fi');
+  if (fi) fi.value = '';
+  document.getElementById('uph').classList.remove('hidden');
+  document.getElementById('upv').classList.add('hidden');
 }
 
 function rd() {
-    var u = gu();
-    if (!u.email) { gp('login'); return; }
-    document.getElementById('du').textContent = u.email.split('@')[0];
+  var u = gu();
+  if (!u.email) { gp('login'); return; }
+  document.getElementById('du').textContent = u.email.split('@')[0];
 
-    // Admin button hide/show control
-    var adminBtn = document.getElementById('dash-admin-btn');
-    if (adminBtn) {
-        var userEmail = u.email.toLowerCase().trim();
-        if (allowedAdmins.includes(userEmail) || userEmail.includes('krishnapathak') || userEmail.includes('skyworld')) {
-            adminBtn.classList.remove('hidden');
-            adminBtn.style.display = 'flex';
-        } else {
-            adminBtn.classList.add('hidden');
-            adminBtn.style.display = 'none';
-        }
-    }
-
-    var allOrders = go().filter(function(o) { return o.email.toLowerCase().trim() === u.email.toLowerCase().trim(); });
-    var approvedLots = 0;
-    var extraShares = 0;
-    
-    for(var x = 0; x < allOrders.length; x++) {
-        if(allOrders[x].status === 'approved' || allOrders[x].status === 'Active') {
-            if(allOrders[x].type === 'share') {
-                extraShares += parseInt(allOrders[x].qty);
-            } else {
-                approvedLots += parseInt(allOrders[x].qty);
-            }
-        }
-    }
-    
-    var approvedShares = (approvedLots * LS) + extraShares;
-    var portfolioValue = approvedShares * SP;
-
-    document.getElementById('ds').textContent = approvedShares.toLocaleString();
-    document.getElementById('dl').textContent = approvedLots;
-    document.getElementById('dv').textContent = portfolioValue.toFixed(2);
-
-    var orders = allOrders.slice(-5).reverse();
-    var rt = document.getElementById('drt');
-    
-    if (!orders.length) { 
-        rt.innerHTML = '<p class="text-b7/15 text-center py-12">No transactions yet. Buy your first shares!</p>'; 
+  var adminBtn = document.getElementById('dash-admin-btn');
+  if (adminBtn) {
+    var userEmail = (u.email || '').toLowerCase().trim();
+    if (allowedAdmins.includes(userEmail) || userEmail.includes('krishnapathak') || userEmail.includes('skyworld')) {
+      adminBtn.classList.remove('hidden');
+      adminBtn.style.display = 'flex';
     } else {
-        var html = '';
-        for (var i = 0; i < orders.length; i++) {
-            var o = orders[i];
-            var isApproved = (o.status === 'approved' || o.status === 'Active');
-            var title = o.type === 'share' ? 'Share Purchase' : 'Lot Purchase';
-            var unitText = o.type === 'share' ? 'Share(s)' : 'Lot(s)';
-            
-            html += '<div class="gl rounded-xl p-4 flex items-center gap-4 border border-b6/6">';
-            html += '<div class="w-10 h-10 rounded-xl ' + (isApproved ? 'bg-ac/10' : 'bg-am/10') + ' flex items-center justify-center flex-shrink-0"><i class="fas ' + (isApproved ? 'fa-check text-ac' : 'fa-clock text-am') + '"></i></div>';
-            html += '<div class="flex-1 min-w-0"><p class="text-white text-sm font-bold">' + title + ' (ID: ' + o.id + ')</p>';
-            html += '<p class="text-b7/25 text-xs">' + new Date(o.date).toLocaleDateString() + ' — ' + o.qty + ' ' + unitText + ' x $' + parseFloat(o.price).toFixed(o.type === 'share' ? 4 : 2) + '</p></div>';
-            html += '<div class="text-right"><p class="text-white font-bold text-sm">$' + o.total.toFixed(2) + '</p>';
-            html += '<p class="text-xs font-semibold ' + (isApproved ? 'text-ac' : 'text-am') + '">' + o.status.charAt(0).toUpperCase() + o.status.slice(1) + '</p></div></div>';
-        }
-        rt.innerHTML = html;
+      adminBtn.classList.add('hidden');
+      adminBtn.style.display = 'none';
     }
+  }
 
-    var newsList = JSON.parse(localStorage.getItem('sg_news') || '[]');
-    var newsContainer = document.getElementById('dash-news-container');
-    if (newsContainer) {
-        if (!newsList.length) {
-            newsContainer.innerHTML = '<p class="text-b7/15 text-center py-6">No news announcements yet.</p>';
-        } else {
-            var nHtml = '';
-            for (var n = 0; n < newsList.length; n++) {
-                var item = newsList[n];
-                nHtml += '<div class="gl rounded-2xl p-4 flex flex-col sm:flex-row gap-4 items-center border border-b6/8">';
-                nHtml += '<img src="' + item.image + '" class="w-full sm:w-28 h-20 object-cover rounded-xl flex-shrink-0" alt="News">';
-                nHtml += '<div class="flex-1 min-w-0"><div class="flex items-center justify-between mb-1"><h4 class="text-white font-bold text-sm truncate">' + item.title + '</h4><span class="text-xs text-b7/30">' + item.date + '</span></div>';
-                nHtml += '<p class="text-b7/40 text-xs leading-relaxed line-clamp-2">' + item.content + '</p></div></div>';
-            }
-            newsContainer.innerHTML = nHtml;
-        }
+  var currentMail = (u.email || '').toLowerCase().trim();
+  var allOrders = go().filter(function(o) { 
+    return (o.email || '').toLowerCase().trim() === currentMail; 
+  });
+
+  var approvedLots = 0;
+  var extraShares = 0;
+  
+  for(var x = 0; x < allOrders.length; x++) {
+    if(allOrders[x].status === 'approved' || allOrders[x].status === 'Active') {
+      if(allOrders[x].type === 'share') {
+        extraShares += parseInt(allOrders[x].qty || 0);
+      } else {
+        approvedLots += parseInt(allOrders[x].qty || 0);
+      }
     }
+  }
+  
+  var approvedShares = (approvedLots * LS) + extraShares;
+  var portfolioValue = approvedShares * SP;
+
+  document.getElementById('ds').textContent = approvedShares.toLocaleString();
+  document.getElementById('dl').textContent = approvedLots;
+  document.getElementById('dv').textContent = portfolioValue.toFixed(2);
+
+  var orders = allOrders.slice(-5).reverse();
+  var rt = document.getElementById('drt');
+  
+  if (!orders.length) { 
+    rt.innerHTML = '<p class="text-b7/15 text-center py-12">No transactions yet. Buy your first shares!</p>'; 
+  } else {
+    var html = '';
+    for (var i = 0; i < orders.length; i++) {
+      var o = orders[i];
+      var isApproved = (o.status === 'approved' || o.status === 'Active');
+      var title = o.type === 'share' ? 'Share Purchase' : 'Lot Purchase';
+      var unitText = o.type === 'share' ? 'Share(s)' : 'Lot(s)';
+      
+      html += '<div class="gl rounded-xl p-4 flex items-center gap-4 border border-b6/6">';
+      html += '<div class="w-10 h-10 rounded-xl ' + (isApproved ? 'bg-ac/10' : 'bg-am/10') + ' flex items-center justify-center flex-shrink-0"><i class="fas ' + (isApproved ? 'fa-check text-ac' : 'fa-clock text-am') + '"></i></div>';
+      html += '<div class="flex-1 min-w-0"><p class="text-white text-sm font-bold">' + title + ' (ID: ' + o.id + ')</p>';
+      html += '<p class="text-b7/25 text-xs">' + new Date(o.date).toLocaleDateString() + ' — ' + o.qty + ' ' + unitText + ' x $' + parseFloat(o.price || 0).toFixed(o.type === 'share' ? 4 : 2) + '</p></div>';
+      html += '<div class="text-right"><p class="text-white font-bold text-sm">$' + parseFloat(o.total || 0).toFixed(2) + '</p>';
+      html += '<p class="text-xs font-semibold ' + (isApproved ? 'text-ac' : 'text-am') + '">' + (o.status || 'pending').toUpperCase() + '</p></div></div>';
+    }
+    rt.innerHTML = html;
+  }
+
+  var newsList = JSON.parse(localStorage.getItem('sg_news') || '[]');
+  var newsContainer = document.getElementById('dash-news-container');
+  if (newsContainer) {
+    if (!newsList.length) {
+      newsContainer.innerHTML = '<p class="text-b7/15 text-center py-6">No news announcements yet.</p>';
+    } else {
+      var nHtml = '';
+      for (var n = 0; n < newsList.length; n++) {
+        var item = newsList[n];
+        nHtml += '<div class="gl rounded-2xl p-4 flex flex-col sm:flex-row gap-4 items-center border border-b6/8">';
+        nHtml += '<img src="' + item.image + '" class="w-full sm:w-28 h-20 object-cover rounded-xl flex-shrink-0" alt="News">';
+        nHtml += '<div class="flex-1 min-w-0"><div class="flex items-center justify-between mb-1"><h4 class="text-white font-bold text-sm truncate">' + item.title + '</h4><span class="text-xs text-b7/30">' + item.date + '</span></div>';
+        nHtml += '<p class="text-b7/40 text-xs leading-relaxed line-clamp-2">' + item.content + '</p></div></div>';
+      }
+      newsContainer.innerHTML = nHtml;
+    }
+  }
 }
 
 function rtx() {
-    var u = gu();
-    if (!u.email) { gp('login'); return; }
-    var orders = go().filter(function(o) { return o.email.toLowerCase().trim() === u.email.toLowerCase().trim(); }).reverse();
-    var tl = document.getElementById('txl');
-    if (!orders.length) { tl.innerHTML = '<p class="text-b7/15 text-center py-16">No transactions yet</p>'; return; }
-    var html = '';
-    for (var i = 0; i < orders.length; i++) {
-        var o = orders[i];
-        var isApproved = (o.status === 'approved' || o.status === 'Active');
-        var iconClass = isApproved ? 'fa-check-circle text-ac' : (o.status === 'rejected' ? 'fa-times-circle text-rn' : 'fa-clock text-am');
-        var txtClass = isApproved ? 'bg-ac/10 text-ac' : (o.status === 'rejected' ? 'bg-rn/10 text-rn' : 'bg-am/10 text-am');
-        var title = o.type === 'share' ? 'Share Purchase' : 'Lot Purchase';
-        var unitText = o.type === 'share' ? 'shares' : 'lots';
-        
-        html += '<div class="gl2 rounded-2xl p-5 flex items-center gap-5 glow-b">';
-        html += '<div class="w-12 h-12 rounded-xl bg-b6/8 flex items-center justify-center flex-shrink-0 ring-1 ring-b6/8"><i class="fas ' + iconClass + ' text-lg"></i></div>';
-        html += '<div class="flex-1 min-w-0"><p class="text-white font-bold">' + title + ' (ID: ' + o.id + ') — ' + o.qty + ' ' + unitText + '</p>';
-        html += '<p class="text-b7/25 text-sm mt-0.5">' + new Date(o.date).toLocaleString() + ' &middot; $' + parseFloat(o.price).toFixed(o.type === 'share' ? 4 : 2) + '/unit</p></div>';
-        html += '<div class="text-right flex-shrink-0"><p class="text-white font-d font-bold text-lg">$' + o.total.toFixed(2) + '</p>';
-        html += '<span class="inline-block mt-1 px-3 py-1 rounded-full text-[11px] font-bold ' + txtClass + '">' + o.status.toUpperCase() + '</span></div></div>';
-    }
-    tl.innerHTML = html;
+  var u = gu();
+  if (!u.email) { gp('login'); return; }
+  var currentMail = (u.email || '').toLowerCase().trim();
+  var orders = go().filter(function(o) { 
+    return (o.email || '').toLowerCase().trim() === currentMail; 
+  }).reverse();
+
+  var tl = document.getElementById('txl');
+  if (!orders.length) { tl.innerHTML = '<p class="text-b7/15 text-center py-16">No transactions yet</p>'; return; }
+  var html = '';
+  for (var i = 0; i < orders.length; i++) {
+    var o = orders[i];
+    var isApproved = (o.status === 'approved' || o.status === 'Active');
+    var iconClass = isApproved ? 'fa-check-circle text-ac' : (o.status === 'rejected' ? 'fa-times-circle text-rn' : 'fa-clock text-am');
+    var txtClass = isApproved ? 'bg-ac/10 text-ac' : (o.status === 'rejected' ? 'bg-rn/10 text-rn' : 'bg-am/10 text-am');
+    var title = o.type === 'share' ? 'Share Purchase' : 'Lot Purchase';
+    var unitText = o.type === 'share' ? 'shares' : 'lots';
+    
+    html += '<div class="gl2 rounded-2xl p-5 flex items-center gap-5 glow-b">';
+    html += '<div class="w-12 h-12 rounded-xl bg-b6/8 flex items-center justify-center flex-shrink-0 ring-1 ring-b6/8"><i class="fas ' + iconClass + ' text-lg"></i></div>';
+    html += '<div class="flex-1 min-w-0"><p class="text-white font-bold">' + title + ' (ID: ' + o.id + ') — ' + o.qty + ' ' + unitText + '</p>';
+    html += '<p class="text-b7/25 text-sm mt-0.5">' + new Date(o.date).toLocaleString() + ' &middot; $' + parseFloat(o.price || 0).toFixed(o.type === 'share' ? 4 : 2) + '/unit</p></div>';
+    html += '<div class="text-right flex-shrink-0"><p class="text-white font-d font-bold text-lg">$' + parseFloat(o.total || 0).toFixed(2) + '</p>';
+    html += '<span class="inline-block mt-1 px-3 py-1 rounded-full text-[11px] font-bold ' + txtClass + '">' + (o.status || 'pending').toUpperCase() + '</span></div></div>';
+  }
+  tl.innerHTML = html;
 }
 
 function ra() {
-    var orders = go();
-    var pending = orders.filter(function(o) { return o.status === 'pending'; });
-    var ap = document.getElementById('ap');
-    if (!pending.length) { ap.innerHTML = '<p class="text-b7/15 text-center py-12 gl2 rounded-2xl">No pending requests</p>'; }
-    else {
-        var html = '';
-        for (var i = 0; i < pending.length; i++) {
-            var o = pending[i];
-            var unitText = o.type === 'share' ? 'Shares: ' : 'Lots: ';
-            html += '<div class="gl2 rounded-2xl p-6 glow-b"><div class="flex flex-col sm:flex-row sm:items-center gap-4">';
-            html += '<div class="flex-1 min-w-0"><p class="text-white font-bold">' + o.email + '</p>';
-            html += '<p class="text-b7/25 text-sm mt-1">' + unitText + o.qty + ' &middot; Total: $' + o.total.toFixed(2) + ' &middot; ' + new Date(o.date).toLocaleDateString() + '</p>';
-            if (o.file) html += '<p class="text-b7/15 text-xs mt-1"><i class="fas fa-image mr-1"></i>' + o.file + '</p>';
-            html += '</div><div class="flex gap-3 flex-shrink-0">';
-            html += '<button onclick="ao(\'' + o.id + '\',\'approved\')" class="px-5 py-2.5 bg-ac/10 text-ac font-bold rounded-xl hover:bg-ac/20 transition text-sm border border-ac/15"><i class="fas fa-check mr-1.5"></i>Approve</button>';
-            html += '<button onclick="ao(\'' + o.id + '\',\'rejected\')" class="px-5 py-2.5 bg-rn/10 text-rn font-bold rounded-xl hover:bg-rn/20 transition text-sm border border-rn/15"><i class="fas fa-times mr-1.5"></i>Reject</button>';
-            html += '</div></div></div>';
-        }
-        ap.innerHTML = html;
+  var orders = go();
+  var pending = orders.filter(function(o) { return (o.status || '').toLowerCase() === 'pending'; });
+  var ap = document.getElementById('ap');
+  
+  if (!pending.length) { 
+    ap.innerHTML = '<p class="text-b7/15 text-center py-12 gl2 rounded-2xl">No pending requests</p>'; 
+  } else {
+    var html = '';
+    for (var i = 0; i < pending.length; i++) {
+      var o = pending[i];
+      var unitText = o.type === 'share' ? 'Shares: ' : 'Lots: ';
+      html += '<div class="gl2 rounded-2xl p-6 glow-b"><div class="flex flex-col sm:flex-row sm:items-center gap-4">';
+      html += '<div class="flex-1 min-w-0"><p class="text-white font-bold">' + o.email + '</p>';
+      html += '<p class="text-b7/25 text-sm mt-1">' + unitText + o.qty + ' &middot; Total: $' + parseFloat(o.total || 0).toFixed(2) + ' &middot; ' + new Date(o.date).toLocaleDateString() + '</p>';
+      
+      if (o.screenshot) {
+        html += '<p class="mt-2"><button onclick="viewReceipt(\'' + o.id + '\')" class="text-xs text-b7 underline hover:text-ac transition font-semibold cursor-pointer"><i class="fas fa-image mr-1"></i>View Payment Screenshot</button></p>';
+      } else if (o.file) {
+        html += '<p class="text-b7/15 text-xs mt-1"><i class="fas fa-image mr-1"></i>' + o.file + '</p>';
+      }
+      
+      html += '</div><div class="flex gap-3 flex-shrink-0">';
+      html += '<button onclick="ao(\'' + o.id + '\',\'approved\')" class="px-5 py-2.5 bg-ac/10 text-ac font-bold rounded-xl hover:bg-ac/20 transition text-sm border border-ac/15"><i class="fas fa-check mr-1.5"></i>Approve</button>';
+      html += '<button onclick="ao(\'' + o.id + '\',\'rejected\')" class="px-5 py-2.5 bg-rn/10 text-rn font-bold rounded-xl hover:bg-rn/20 transition text-sm border border-rn/15"><i class="fas fa-times mr-1.5"></i>Reject</button>';
+      html += '</div></div></div>';
     }
+    ap.innerHTML = html;
+  }
 
-    var newsList = JSON.parse(localStorage.getItem('sg_news') || '[]');
-    var adminNewsContainer = document.getElementById('admin-news-list');
-    if (adminNewsContainer) {
-        if (!newsList.length) {
-            adminNewsContainer.innerHTML = '<p class="text-b7/15 text-center py-6 gl2 rounded-2xl">No news posted yet.</p>';
-        } else {
-            var aHtml = '';
-            for (var a = 0; a < newsList.length; a++) {
-                var item = newsList[a];
-                aHtml += '<div class="gl2 rounded-2xl p-4 flex items-center justify-between gap-4 glow-b">';
-                aHtml += '<div class="flex items-center gap-3 min-w-0"><img src="' + item.image + '" class="w-16 h-12 object-cover rounded-lg flex-shrink-0"><div class="min-w-0"><h4 class="text-white font-bold text-sm truncate">' + item.title + '</h4><p class="text-b7/30 text-xs">' + item.date + '</p></div></div>';
-                aHtml += '<button onclick="deleteNews(\'' + item.id + '\')" class="px-4 py-2 bg-rn/10 text-rn font-bold rounded-xl hover:bg-rn/20 transition text-xs border border-rn/15 flex-shrink-0"><i class="fas fa-trash mr-1"></i>Delete</button>';
-                aHtml += '</div>';
-            }
-            adminNewsContainer.innerHTML = aHtml;
-        }
+  var newsList = JSON.parse(localStorage.getItem('sg_news') || '[]');
+  var adminNewsContainer = document.getElementById('admin-news-list');
+  if (adminNewsContainer) {
+    if (!newsList.length) {
+      adminNewsContainer.innerHTML = '<p class="text-b7/15 text-center py-6 gl2 rounded-2xl">No news posted yet.</p>';
+    } else {
+      var aHtml = '';
+      for (var a = 0; a < newsList.length; a++) {
+        var nItem = newsList[a];
+        aHtml += '<div class="gl2 rounded-2xl p-4 flex items-center justify-between gap-4 glow-b">';
+        aHtml += '<div class="flex items-center gap-3 min-w-0"><img src="' + nItem.image + '" class="w-16 h-12 object-cover rounded-lg flex-shrink-0"><div class="min-w-0"><h4 class="text-white font-bold text-sm truncate">' + nItem.title + '</h4><p class="text-b7/30 text-xs">' + nItem.date + '</p></div></div>';
+        aHtml += '<button onclick="deleteNews(\'' + nItem.id + '\')" class="px-4 py-2 bg-rn/10 text-rn font-bold rounded-xl hover:bg-rn/20 transition text-xs border border-rn/15 flex-shrink-0"><i class="fas fa-trash mr-1"></i>Delete</button>';
+        aHtml += '</div>';
+      }
+      adminNewsContainer.innerHTML = aHtml;
     }
+  }
 
-    var usersMap = {};
-    for (var j = 0; j < orders.length; j++) {
-        var ord = orders[j];
-        if (!usersMap[ord.email]) { usersMap[ord.email] = { email: ord.email, orders: 0, approved: 0, total: 0 }; }
-        usersMap[ord.email].orders++;
-        if (ord.status === 'approved' || ord.status === 'Active') {
-            usersMap[ord.email].approved++;
-            usersMap[ord.email].total += ord.total;
-        }
+  var usersMap = {};
+  for (var j = 0; j < orders.length; j++) {
+    var ord = orders[j];
+    var mailKey = (ord.email || 'unknown').toLowerCase().trim();
+    if (!usersMap[mailKey]) { usersMap[mailKey] = { email: mailKey, orders: 0, approved: 0, total: 0 }; }
+    usersMap[mailKey].orders++;
+    if (ord.status === 'approved' || ord.status === 'Active') {
+      usersMap[mailKey].approved++;
+      usersMap[mailKey].total += parseFloat(ord.total || 0);
     }
-    var ul = Object.values(usersMap);
-    var au = document.getElementById('au');
-    if (!ul.length) { au.innerHTML = '<p class="text-b7/15 text-center py-12">No users yet</p>'; }
-    else {
-        var thtml = '<div class="overflow-x-auto"><table class="w-full text-sm"><thead><tr class="border-b border-b6/8">';
-        thtml += '<th class="text-left p-4 text-b7/25 font-semibold">Email</th><th class="text-center p-4 text-b7/25 font-semibold">Orders</th>';
-        thtml += '<th class="text-center p-4 text-b7/25 font-semibold">Approved</th><th class="text-right p-4 text-b7/25 font-semibold">Total</th></tr></thead><tbody>';
-        for (var k = 0; k < ul.length; k++) {
-            var ux = ul[k];
-            thtml += '<tr class="border-b border-b6/5 hover:bg-b6/3 transition"><td class="p-4 text-white font-medium">' + ux.email + '</td>';
-            thtml += '<td class="p-4 text-center text-b7/40">' + ux.orders + '</td>';
-            thtml += '<td class="p-4 text-center text-ac font-bold">' + ux.approved + '</td>';
-            thtml += '<td class="p-4 text-right text-white font-bold">$' + ux.total.toFixed(2) + '</td></tr>';
-        }
-        thtml += '</tbody></table></div>';
-        au.innerHTML = thtml;
+  }
+  var ul = Object.values(usersMap);
+  var au = document.getElementById('au');
+  if (!ul.length) { au.innerHTML = '<p class="text-b7/15 text-center py-12">No users yet</p>'; }
+  else {
+    var thtml = '<div class="overflow-x-auto"><table class="w-full text-sm"><thead><tr class="border-b border-b6/8">';
+    thtml += '<th class="text-left p-4 text-b7/25 font-semibold">Email</th><th class="text-center p-4 text-b7/25 font-semibold">Orders</th>';
+    thtml += '<th class="text-center p-4 text-b7/25 font-semibold">Approved</th><th class="text-right p-4 text-b7/25 font-semibold">Total</th></tr></thead><tbody>';
+    for (var k = 0; k < ul.length; k++) {
+      var ux = ul[k];
+      thtml += '<tr class="border-b border-b6/5 hover:bg-b6/3 transition"><td class="p-4 text-white font-medium">' + ux.email + '</td>';
+      thtml += '<td class="p-4 text-center text-b7/40">' + ux.orders + '</td>';
+      thtml += '<td class="p-4 text-center text-ac font-bold">' + ux.approved + '</td>';
+      thtml += '<td class="p-4 text-right text-white font-bold">$' + ux.total.toFixed(2) + '</td></tr>';
     }
+    thtml += '</tbody></table></div>';
+    au.innerHTML = thtml;
+  }
 }
 
-// 🔥 FIREBASE CONNECTED ADMIN APPROVE/REJECT 🔥
+function viewReceipt(id) {
+  var ord = go().find(function(item) { return String(item.id) === String(id); });
+  if (ord && ord.screenshot) {
+    smo('<div class="text-center"><h3 class="text-lg font-bold text-white mb-4">Payment Screenshot</h3><img src="' + ord.screenshot + '" class="max-h-[70vh] mx-auto rounded-xl shadow-lg mb-4" alt="Receipt"><button onclick="document.getElementById(\'mo\').style.display=\'none\'" class="px-6 py-2 bg-b6 text-white rounded-xl text-sm font-bold">Close</button></div>');
+  } else {
+    tt('No image preview found', 'info');
+  }
+}
+
 async function ao(id, status) {
-    db.ref('orders/' + id).update({ status: status });
+  try {
+    await db.ref('orders/' + id).update({ status: status });
     tt('Order ' + status + ' successfully', 'success');
+  } catch(e) {
+    tt('Update failed: ' + e.message, 'error');
+  }
 }
 
 function deleteNews(id) {
-    var newsList = JSON.parse(localStorage.getItem('sg_news') || '[]');
-    newsList = newsList.filter(function(item) { return String(item.id) !== String(id); });
-    localStorage.setItem('sg_news', JSON.stringify(newsList));
-    tt('News deleted successfully!', 'success');
-    ra();
+  var newsList = JSON.parse(localStorage.getItem('sg_news') || '[]');
+  newsList = newsList.filter(function(item) { return String(item.id) !== String(id); });
+  localStorage.setItem('sg_news', JSON.stringify(newsList));
+  tt('News deleted successfully!', 'success');
+  ra();
 }
 
 function submitNews() {
-    var title = document.getElementById('news-title').value.trim();
-    var content = document.getElementById('news-content').value.trim();
-    var image = document.getElementById('news-image').value.trim();
-    if (!title || !content) { tt('Please fill Title and Content', 'error'); return; }
-    var newsItem = {
-        id: String(Date.now()),
-        title: title,
-        content: content,
-        image: image || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=500&h=300&fit=crop',
-        date: new Date().toLocaleDateString()
-    };
-    var newsList = JSON.parse(localStorage.getItem('sg_news') || '[]');
-    newsList.unshift(newsItem);
-    localStorage.setItem('sg_news', JSON.stringify(newsList));
-    tt('News Published Successfully!', 'success');
-    document.getElementById('news-title').value = '';
-    document.getElementById('news-content').value = '';
-    document.getElementById('news-image').value = '';
+  var title = document.getElementById('news-title').value.trim();
+  var content = document.getElementById('news-content').value.trim();
+  var image = document.getElementById('news-image').value.trim();
+  if (!title || !content) { tt('Please fill Title and Content', 'error'); return; }
+  var newsItem = {
+    id: String(Date.now()),
+    title: title,
+    content: content,
+    image: image || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=500&h=300&fit=crop',
+    date: new Date().toLocaleDateString()
+  };
+  var newsList = JSON.parse(localStorage.getItem('sg_news') || '[]');
+  newsList.unshift(newsItem);
+  localStorage.setItem('sg_news', JSON.stringify(newsList));
+  tt('News Published Successfully!', 'success');
+  document.getElementById('news-title').value = '';
+  document.getElementById('news-content').value = '';
+  document.getElementById('news-image').value = '';
 }
 
 function logout() {
-    localStorage.removeItem('sg_u');
-    cu = null;
-    tt('Logged out successfully', 'info');
-    gp('home');
+  localStorage.removeItem('sg_u');
+  cu = null;
+  tt('Logged out successfully', 'info');
+  gp('home');
 }
 
 window.addEventListener('scroll', function() {
-    var nv = document.getElementById('nv');
-    if (window.scrollY > 50) { nv.classList.add('nav-scrolled'); }
-    else { nv.classList.remove('nav-scrolled'); }
+  var nv = document.getElementById('nv');
+  if (window.scrollY > 50) { nv.classList.add('nav-scrolled'); }
+  else { nv.classList.remove('nav-scrolled'); }
 });
 
 var rvObserver = new IntersectionObserver(function(entries) {
-    for (var i = 0; i < entries.length; i++) {
-        if (entries[i].isIntersecting) {
-            entries[i].target.classList.add('vis');
-            rvObserver.unobserve(entries[i].target);
-        }
+  for (var i = 0; i < entries.length; i++) {
+    if (entries[i].isIntersecting) {
+      entries[i].target.classList.add('vis');
+      rvObserver.unobserve(entries[i].target);
     }
+  }
 }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
 
 document.addEventListener('DOMContentLoaded', function() {
-    var els = document.querySelectorAll('.rv');
-    for (var i = 0; i < els.length; i++) { rvObserver.observe(els[i]); }
+  var els = document.querySelectorAll('.rv');
+  for (var i = 0; i < els.length; i++) { rvObserver.observe(els[i]); }
 
-    var cts = document.querySelectorAll('.ct');
-    for(var j=0; j<cts.length; j++) {
-        var t = cts[j].getAttribute('data-t');
-        if(t) { cts[j].textContent = parseInt(t).toLocaleString(); }
-    }
+  var cts = document.querySelectorAll('.ct');
+  for(var j=0; j<cts.length; j++) {
+    var t = cts[j].getAttribute('data-t');
+    if(t) { cts[j].textContent = parseInt(t).toLocaleString(); }
+  }
 
-    var u = gu();
-    if (u && u.email) {
-        document.getElementById('nl-btn').classList.add('hidden');
-        document.getElementById('nd-btn').classList.remove('hidden');
-        
-        var adminBtn = document.getElementById('dash-admin-btn');
-        if (adminBtn) {
-            var userEmail = u.email.toLowerCase().trim();
-            if (allowedAdmins.includes(userEmail) || userEmail.includes('krishnapathak') || userEmail.includes('skyworld')) {
-                adminBtn.classList.remove('hidden');
-                adminBtn.style.display = 'flex'; 
-            }
-        }
+  var u = gu();
+  if (u && u.email) {
+    document.getElementById('nl-btn').classList.add('hidden');
+    document.getElementById('nd-btn').classList.remove('hidden');
+    
+    var adminBtn = document.getElementById('dash-admin-btn');
+    if (adminBtn) {
+      var userEmail = (u.email || '').toLowerCase().trim();
+      if (allowedAdmins.includes(userEmail) || userEmail.includes('krishnapathak') || userEmail.includes('skyworld')) {
+        adminBtn.classList.remove('hidden');
+        adminBtn.style.display = 'flex'; 
+      }
     }
+  }
 });
 </script>
 </body>
